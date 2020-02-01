@@ -1,6 +1,6 @@
 extends Spatial
 
-const TRACK_AMOUNT = 8
+const RADIUS = 8
 
 var noise := OpenSimplexNoise.new()
 var observer_thread := Thread.new()
@@ -58,21 +58,33 @@ func _observer_thread(_userdata):
 
 		var chunks_to_delete := chunks.duplicate()
 
-		for x in range(p_x - TRACK_AMOUNT, p_x + TRACK_AMOUNT):
-			for z in range(p_z - TRACK_AMOUNT, p_z + TRACK_AMOUNT):
-				if chunks.has([x, z]):
-					chunks_to_delete.erase([x, z])
-				else:
-					if len(chunks_to_create) == OS.get_processor_count():
-						_create_chunks(chunks, chunks_to_create)
-					chunks_to_create.append([x, z])
-					if _should_exit():
-						break
+		for xz in _get_neighbor_coords(p_x, p_z, RADIUS):
+			if chunks.has(xz):
+				chunks_to_delete.erase(xz)
+			else:
+				if len(chunks_to_create) == OS.get_processor_count():
+					_create_chunks(chunks, chunks_to_create)
+				chunks_to_create.append(xz)
+				if _should_exit():
+					break
 		_create_chunks(chunks, chunks_to_create)
 
 		for xz in chunks_to_delete:
 			chunks[xz].queue_free()
 			chunks.erase(xz)
+
+
+func _get_neighbor_coords(x: int, z: int, radius: int):
+	assert(radius > 0)
+	var coords := [[x, z]]
+	for r in range(1, radius + 1):
+		for i in range(-r, r + 1):
+			coords.append([x + i, z - r])
+			coords.append([x + i, z + r])
+		for i in range(-(r - 1), (r - 1) + 1):
+			coords.append([x - r, z + i])
+			coords.append([x + r, z + i])
+	return coords
 
 
 func _create_chunks(chunks, chunks_to_create):
