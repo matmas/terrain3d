@@ -31,10 +31,6 @@ gdscript/warnings/unused_class_variable=true
 gdscript/warnings/return_value_discarded=false
 gdscript/warnings/integer_division=false
 
-[display]
-
-window/vsync/use_vsync=false
-
 [input]
 
 movement_forward={
