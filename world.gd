@@ -8,7 +8,6 @@ var semaphore := Semaphore.new()
 var exit_thread = false
 var exit_thread_mutex := Mutex.new()
 
-#OS.get_processor_count()
 
 func _init():
 	noise.octaves = 6
@@ -46,6 +45,7 @@ func _should_exit():
 
 func _observer_thread(_userdata):
 	var chunks := {}
+	var chunks_to_create := []
 
 	while true:
 		semaphore.wait()
@@ -63,15 +63,34 @@ func _observer_thread(_userdata):
 				if chunks.has([x, z]):
 					chunks_to_delete.erase([x, z])
 				else:
-					var chunk := Chunk.new(noise, x, z)
-					chunks[[x, z]] = chunk
-					call_deferred("add_child", chunk)
+					if len(chunks_to_create) == OS.get_processor_count():
+						_create_chunks(chunks, chunks_to_create)
+					chunks_to_create.append([x, z])
 					if _should_exit():
 						break
+		_create_chunks(chunks, chunks_to_create)
 
 		for xz in chunks_to_delete:
 			chunks[xz].queue_free()
 			chunks.erase(xz)
+
+
+func _create_chunks(chunks, chunks_to_create):
+	var threads := []
+	for xz in chunks_to_create:
+		var thread := Thread.new()
+		thread.start(self, "_create_chunk", xz)
+		threads.append(thread)
+	chunks_to_create.clear()
+	for thread in threads:
+		var chunk = thread.wait_to_finish()
+		chunks[[chunk.x, chunk.z]] = chunk
+
+
+func _create_chunk(xz) -> Chunk:
+	var chunk := Chunk.new(noise, xz[0], xz[1])
+	call_deferred("add_child", chunk)
+	return chunk
 
 
 func _exit_tree():
