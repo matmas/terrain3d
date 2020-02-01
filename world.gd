@@ -7,7 +7,7 @@ var observer_thread := Thread.new()
 var semaphore := Semaphore.new()
 var exit_thread = false
 var exit_thread_mutex := Mutex.new()
-
+var plane_mesh_arrays: Array
 
 func _init():
 	noise.octaves = 6
@@ -15,21 +15,19 @@ func _init():
 
 
 func _ready():
-#	var plane_mesh := PlaneMesh.new()
-#	plane_mesh.size = Vector2(Chunk.SIZE, Chunk.SIZE)
-#	plane_mesh.subdivide_depth = Chunk.SIZE / 2
-#	plane_mesh.subdivide_width = Chunk.SIZE / 2
-#	plane_mesh.material = load("res://terrain.material")
-#	var surface_tool := SurfaceTool.new()
-#	surface_tool.create_from(plane_mesh, 0)
-#	mesh = surface_tool.commit()
-
 	observer_thread.start(self, "_observer_thread")
 
 	var timer := Timer.new()
 	timer.connect("timeout", self, "_on_Timer_timeout")
 	add_child(timer)
 	timer.start(0.1)
+
+	var plane_mesh := PlaneMesh.new()
+	plane_mesh.size = Vector2(Chunk.SIZE, Chunk.SIZE)
+	plane_mesh.subdivide_depth = Chunk.SIZE / 2
+	plane_mesh.subdivide_width = Chunk.SIZE / 2
+	plane_mesh.material = preload("res://terrain.material")
+	plane_mesh_arrays = plane_mesh.get_mesh_arrays()
 
 
 func _on_Timer_timeout():
@@ -100,7 +98,7 @@ func _create_chunks(chunks, chunks_to_create):
 
 
 func _create_chunk(xz) -> Chunk:
-	var chunk := Chunk.new(noise, xz[0], xz[1])
+	var chunk := Chunk.new(noise, xz[0], xz[1], self)
 	call_deferred("add_child", chunk)
 	return chunk
 
@@ -111,3 +109,7 @@ func _exit_tree():
 	exit_thread_mutex.unlock()
 	semaphore.post()
 	observer_thread.wait_to_finish()
+
+
+func get_plane_mesh_arrays():
+	return plane_mesh_arrays.duplicate(true)
