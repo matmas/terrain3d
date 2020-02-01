@@ -19,7 +19,7 @@ func _init(noise, x, z):
 	plane_mesh.size = Vector2(SIZE, SIZE)
 	plane_mesh.subdivide_depth = SIZE / 2
 	plane_mesh.subdivide_width = SIZE / 2
-	plane_mesh.material = load("res://terrain.material")
+	plane_mesh.material = preload("res://terrain.material")
 	var surface_tool := SurfaceTool.new()
 	surface_tool.create_from(plane_mesh, 0)
 	var mesh = surface_tool.commit()
