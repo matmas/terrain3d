@@ -103,11 +103,15 @@ func _create_chunk(xz) -> Chunk:
 
 
 func _exit_tree():
-	exit_thread_mutex.lock()
-	exit_thread = true
-	exit_thread_mutex.unlock()
+	_set_exit(true)
 	semaphore.post()
 	observer_thread.wait_to_finish()
+
+
+func _set_exit(value):
+	exit_thread_mutex.lock()
+	exit_thread = value
+	exit_thread_mutex.unlock()
 
 
 func _should_exit():
@@ -134,7 +138,8 @@ func _set_noise(value):
 	noise = value
 	_set_refresh(true)
 	if noise:
-		noise.connect("changed", self, "_on_noise_changed")
+		if not noise.is_connected("changed", self, "_on_noise_changed"):
+			noise.connect("changed", self, "_on_noise_changed")
 
 
 func _on_noise_changed():
