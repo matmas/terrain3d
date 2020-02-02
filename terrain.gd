@@ -4,7 +4,9 @@ class_name Terrain
 
 onready var player = $"../Player"
 
-export(int, 1, 20) var radius = 8
+export(int, 0, 20) var radius = 8
+export(float) var chunk_size = 64 setget _set_chunk_size
+export(int, 2, 1024) var resolution = 32 setget _set_resolution
 export(float) var amplitude = 80 setget _set_amplitude
 export(float, EASE) var curve = 1 setget _set_curve
 export(OpenSimplexNoise) var noise setget _set_noise
@@ -19,6 +21,8 @@ var plane_mesh_arrays: Array
 
 
 func _ready():
+	_generate_plane_mesh()
+
 	observer_thread.start(self, "_observer_thread")
 
 	var timer := Timer.new()
@@ -26,10 +30,12 @@ func _ready():
 	add_child(timer)
 	timer.start(0.1)
 
+
+func _generate_plane_mesh():
 	var plane_mesh := PlaneMesh.new()
-	plane_mesh.size = Vector2(Chunk.SIZE, Chunk.SIZE)
-	plane_mesh.subdivide_depth = Chunk.SIZE / 2
-	plane_mesh.subdivide_width = Chunk.SIZE / 2
+	plane_mesh.size = Vector2(chunk_size, chunk_size)
+	plane_mesh.subdivide_depth = resolution
+	plane_mesh.subdivide_width = resolution
 	plane_mesh_arrays = plane_mesh.get_mesh_arrays()
 
 
@@ -52,8 +58,8 @@ func _observer_thread(_userdata):
 			chunks.clear()
 			_set_refresh(false)
 
-		var p_x := int(player.translation.x) / Chunk.SIZE
-		var p_z := int(player.translation.z) / Chunk.SIZE
+		var p_x := int(round(player.translation.x / chunk_size))
+		var p_z := int(round(player.translation.z / chunk_size))
 
 		var chunks_to_delete := chunks.duplicate()
 
@@ -74,7 +80,7 @@ func _observer_thread(_userdata):
 
 
 func _get_neighbor_coords(x: int, z: int, radius: int):
-	assert(radius > 0)
+	assert(radius >= 0)
 	var coords := [[x, z]]
 	for r in range(1, radius + 1):
 		for i in range(-r, r + 1):
@@ -107,7 +113,8 @@ func _create_chunk(xz) -> Chunk:
 func _exit_tree():
 	_set_exit(true)
 	semaphore.post()
-	observer_thread.wait_to_finish()
+	if observer_thread.is_active():  # Avoid "Thread must exist to wait for its completion." error in editor output
+		observer_thread.wait_to_finish()
 
 
 func _should_exit():
@@ -134,6 +141,18 @@ func _set_refresh(value):
 	should_refresh_mutex.lock()
 	should_refresh = value
 	should_refresh_mutex.unlock()
+
+
+func _set_chunk_size(value):
+	chunk_size = value
+	_generate_plane_mesh()
+	_set_refresh(true)
+
+
+func _set_resolution(value):
+	resolution = value
+	_generate_plane_mesh()
+	_set_refresh(true)
 
 
 func _set_curve(value):

@@ -2,8 +2,6 @@ tool
 extends Spatial
 class_name Chunk
 
-const SIZE = 64
-
 var noise: OpenSimplexNoise
 var x
 var z
@@ -15,7 +13,7 @@ func _init(noise, x, z, terrain):
 	self.noise = noise
 	self.x = x
 	self.z = z
-	self.translation = Vector3(x * SIZE, 0, z * SIZE)
+	self.translation = Vector3(x * terrain.chunk_size, 0, z * terrain.chunk_size)
 	self.terrain = terrain
 
 	var arrays = terrain.get_plane_mesh_arrays()
@@ -43,7 +41,7 @@ func _ready():
 
 
 func _height(point) -> float:
-	var value = noise.get_noise_3d(x * SIZE + point.x, 0, z * SIZE + point.y)  # from -1.0 to 1.0
+	var value = noise.get_noise_2d(x * terrain.chunk_size + point.x, z * terrain.chunk_size + point.y)  # from -1.0 to 1.0
 	value = (value + 1.0) * 0.5  # from 0.0 to 1.0
 	value = ease(value, terrain.curve)
 	value = value * 2.0 - 1.0  # from -1.0 to 1.0
