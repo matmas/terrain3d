@@ -7,10 +7,11 @@ onready var player = $"../Player"
 export(int, 1, 20) var radius = 8
 export(OpenSimplexNoise) var noise setget _set_noise
 
+
 var observer_thread := Thread.new()
 var semaphore := BinarySemaphore.new()
-var exit_thread = false
-var exit_thread_mutex := Mutex.new()
+var should_exit = false
+var should_exit_mutex := Mutex.new()
 var should_refresh = false
 var should_refresh_mutex := Mutex.new()
 var plane_mesh_arrays: Array
@@ -108,17 +109,17 @@ func _exit_tree():
 	observer_thread.wait_to_finish()
 
 
-func _set_exit(value):
-	exit_thread_mutex.lock()
-	exit_thread = value
-	exit_thread_mutex.unlock()
-
-
 func _should_exit():
-	exit_thread_mutex.lock()
-	var should_exit = exit_thread
-	exit_thread_mutex.unlock()
-	return should_exit
+	should_exit_mutex.lock()
+	var value = should_exit
+	should_exit_mutex.unlock()
+	return value
+
+
+func _set_exit(value):
+	should_exit_mutex.lock()
+	should_exit = value
+	should_exit_mutex.unlock()
 
 
 func _should_refresh():

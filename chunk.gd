@@ -8,17 +8,17 @@ var noise: OpenSimplexNoise
 var x
 var z
 var mesh_instance: MeshInstance
-var world
+var terrain
 
 
-func _init(noise, x, z, world):
+func _init(noise, x, z, terrain):
 	self.noise = noise
 	self.x = x
 	self.z = z
 	self.translation = Vector3(x * SIZE, 0, z * SIZE)
-	self.world = world
+	self.terrain = terrain
 
-	var arrays = world.get_plane_mesh_arrays()
+	var arrays = terrain.get_plane_mesh_arrays()
 
 	# Adjust vertices
 	var vertices = arrays[Mesh.ARRAY_VERTEX]
