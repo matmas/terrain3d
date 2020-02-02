@@ -4,11 +4,11 @@ class_name Terrain
 
 onready var player = $"../Player"
 
-const RADIUS = 8
+export(int, 1, 20) var radius = 8
+export(OpenSimplexNoise) var noise = OpenSimplexNoise.new()
 
-var noise := OpenSimplexNoise.new()
 var observer_thread := Thread.new()
-var semaphore := Semaphore.new()
+var semaphore := BinarySemaphore.new()
 var exit_thread = false
 var exit_thread_mutex := Mutex.new()
 var plane_mesh_arrays: Array
@@ -38,13 +38,6 @@ func _on_Timer_timeout():
 	semaphore.post()
 
 
-func _should_exit():
-	exit_thread_mutex.lock()
-	var should_exit = exit_thread
-	exit_thread_mutex.unlock()
-	return should_exit
-
-
 func _observer_thread(_userdata):
 	var chunks := {}
 	var chunks_to_create := []
@@ -59,7 +52,7 @@ func _observer_thread(_userdata):
 
 		var chunks_to_delete := chunks.duplicate()
 
-		for xz in _get_neighbor_coords(p_x, p_z, RADIUS):
+		for xz in _get_neighbor_coords(p_x, p_z, radius):
 			if chunks.has(xz):
 				chunks_to_delete.erase(xz)
 			else:
@@ -112,6 +105,13 @@ func _exit_tree():
 	exit_thread_mutex.unlock()
 	semaphore.post()
 	observer_thread.wait_to_finish()
+
+
+func _should_exit():
+	exit_thread_mutex.lock()
+	var should_exit = exit_thread
+	exit_thread_mutex.unlock()
+	return should_exit
 
 
 func get_plane_mesh_arrays():
