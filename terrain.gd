@@ -5,18 +5,13 @@ class_name Terrain
 onready var player = $"../Player"
 
 export(int, 1, 20) var radius = 8
-export(OpenSimplexNoise) var noise = OpenSimplexNoise.new()
+export(OpenSimplexNoise) var noise
 
 var observer_thread := Thread.new()
 var semaphore := BinarySemaphore.new()
 var exit_thread = false
 var exit_thread_mutex := Mutex.new()
 var plane_mesh_arrays: Array
-
-
-func _init():
-	noise.octaves = 6
-	noise.period = 80
 
 
 func _ready():
@@ -94,7 +89,7 @@ func _create_chunks(chunks, chunks_to_create):
 
 
 func _create_chunk(xz) -> Chunk:
-	var chunk := Chunk.new(noise, xz[0], xz[1], self)
+	var chunk := Chunk.new(noise if noise else OpenSimplexNoise.new(), xz[0], xz[1], self)
 	call_deferred("add_child", chunk)
 	return chunk
 
