@@ -5,8 +5,8 @@ class_name Terrain
 onready var player = $"../Player"
 
 export(int, 1, 20) var radius = 8
+export(float, EASE) var curve = 1 setget _set_curve
 export(OpenSimplexNoise) var noise setget _set_noise
-
 
 var observer_thread := Thread.new()
 var semaphore := BinarySemaphore.new()
@@ -133,6 +133,11 @@ func _set_refresh(value):
 	should_refresh_mutex.lock()
 	should_refresh = value
 	should_refresh_mutex.unlock()
+
+
+func _set_curve(value):
+	curve = value
+	_set_refresh(true)
 
 
 func _set_noise(value):

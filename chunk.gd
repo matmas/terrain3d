@@ -36,7 +36,6 @@ func _init(noise, x, z, terrain):
 	mesh_instance.mesh = mesh
 	mesh_instance.cast_shadow = GeometryInstance.SHADOW_CASTING_SETTING_OFF
 #	mesh_instance.create_trimesh_collision()
-#	OS.delay_msec(500)
 
 
 func _ready():
@@ -44,4 +43,9 @@ func _ready():
 
 
 func _height(point) -> float:
-	return noise.get_noise_3d(x * SIZE + point.x, 0, z * SIZE + point.y) * 80
+	var value = noise.get_noise_3d(x * SIZE + point.x, 0, z * SIZE + point.y)  # from -1.0 to 1.0
+	value = (value + 1.0) * 0.5  # from 0.0 to 1.0
+	value = ease(value, terrain.curve)
+	value = value * 2.0 - 1.0  # from -1.0 to 1.0
+	value *= 80
+	return value

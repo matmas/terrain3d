@@ -19,6 +19,7 @@ func _process(_delta):
 
 [node name="Terrain" type="Spatial" parent="."]
 script = ExtResource( 2 )
+curve = -0.5
 noise = SubResource( 1 )
 
 [node name="CanvasLayer" type="CanvasLayer" parent="."]
