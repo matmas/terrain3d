@@ -5,12 +5,14 @@ class_name Terrain
 onready var player = $"../Player"
 
 export(int, 1, 20) var radius = 8
-export(OpenSimplexNoise) var noise
+export(OpenSimplexNoise) var noise setget _set_noise
 
 var observer_thread := Thread.new()
 var semaphore := BinarySemaphore.new()
 var exit_thread = false
 var exit_thread_mutex := Mutex.new()
+var should_refresh = false
+var should_refresh_mutex := Mutex.new()
 var plane_mesh_arrays: Array
 
 
@@ -41,6 +43,12 @@ func _observer_thread(_userdata):
 		semaphore.wait()
 		if _should_exit():
 			break
+
+		if _should_refresh():
+			for xz in chunks:
+				chunks[xz].queue_free()
+			chunks.clear()
+			_set_refresh(false)
 
 		var p_x := int(player.translation.x) / Chunk.SIZE
 		var p_z := int(player.translation.z) / Chunk.SIZE
@@ -107,6 +115,30 @@ func _should_exit():
 	var should_exit = exit_thread
 	exit_thread_mutex.unlock()
 	return should_exit
+
+
+func _should_refresh():
+	should_refresh_mutex.lock()
+	var value = should_refresh
+	should_refresh_mutex.unlock()
+	return value
+
+
+func _set_refresh(value):
+	should_refresh_mutex.lock()
+	should_refresh = value
+	should_refresh_mutex.unlock()
+
+
+func _set_noise(value):
+	noise = value
+	_set_refresh(true)
+	if noise:
+		noise.connect("changed", self, "_on_noise_changed")
+
+
+func _on_noise_changed():
+	_set_refresh(true)
 
 
 func get_plane_mesh_arrays():
