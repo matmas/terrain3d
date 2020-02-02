@@ -5,6 +5,7 @@ class_name Terrain
 onready var player = $"../Player"
 
 export(int, 1, 20) var radius = 8
+export(float) var amplitude = 80 setget _set_amplitude
 export(float, EASE) var curve = 1 setget _set_curve
 export(OpenSimplexNoise) var noise setget _set_noise
 
@@ -137,6 +138,11 @@ func _set_refresh(value):
 
 func _set_curve(value):
 	curve = value
+	_set_refresh(true)
+
+
+func _set_amplitude(value):
+	amplitude = value
 	_set_refresh(true)
 
 

@@ -47,5 +47,5 @@ func _height(point) -> float:
 	value = (value + 1.0) * 0.5  # from 0.0 to 1.0
 	value = ease(value, terrain.curve)
 	value = value * 2.0 - 1.0  # from -1.0 to 1.0
-	value *= 80
+	value *= terrain.amplitude
 	return value
