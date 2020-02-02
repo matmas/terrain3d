@@ -13,15 +13,21 @@ _global_script_classes=[ {
 "class": "Chunk",
 "language": "GDScript",
 "path": "res://chunk.gd"
+}, {
+"base": "Spatial",
+"class": "Terrain",
+"language": "GDScript",
+"path": "res://terrain.gd"
 } ]
 _global_script_class_icons={
-"Chunk": ""
+"Chunk": "",
+"Terrain": ""
 }
 
 [application]
 
 config/name="Survival"
-run/main_scene="res://world.tscn"
+run/main_scene="res://main.tscn"
 config/icon="res://icon.webp"
 
 [debug]

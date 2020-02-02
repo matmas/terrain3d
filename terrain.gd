@@ -1,4 +1,8 @@
+tool
 extends Spatial
+class_name Terrain
+
+onready var player = $"../Player"
 
 const RADIUS = 8
 
@@ -8,6 +12,7 @@ var semaphore := Semaphore.new()
 var exit_thread = false
 var exit_thread_mutex := Mutex.new()
 var plane_mesh_arrays: Array
+
 
 func _init():
 	noise.octaves = 6
@@ -26,7 +31,6 @@ func _ready():
 	plane_mesh.size = Vector2(Chunk.SIZE, Chunk.SIZE)
 	plane_mesh.subdivide_depth = Chunk.SIZE / 2
 	plane_mesh.subdivide_width = Chunk.SIZE / 2
-	plane_mesh.material = preload("res://terrain.material")
 	plane_mesh_arrays = plane_mesh.get_mesh_arrays()
 
 
@@ -50,9 +54,8 @@ func _observer_thread(_userdata):
 		if _should_exit():
 			break
 
-		var player_translation = $Player.translation
-		var p_x := int(player_translation.x) / Chunk.SIZE
-		var p_z := int(player_translation.z) / Chunk.SIZE
+		var p_x := int(player.translation.x) / Chunk.SIZE
+		var p_z := int(player.translation.z) / Chunk.SIZE
 
 		var chunks_to_delete := chunks.duplicate()
 
