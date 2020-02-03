@@ -15,8 +15,7 @@ func _init(noise, x, z, terrain):
 	self.z = z
 	self.translation = Vector3(x * terrain.chunk_size, 0, z * terrain.chunk_size)
 	self.terrain = terrain
-
-	var arrays = terrain.get_plane_mesh_arrays()
+	var arrays = _get_plane_mesh_arrays(terrain.chunk_size, terrain.resolution)
 
 	# Adjust vertices
 	var vertices = arrays[Mesh.ARRAY_VERTEX]
@@ -47,3 +46,55 @@ func _height(point) -> float:
 	value = value * 2.0 - 1.0  # from -1.0 to 1.0
 	value *= terrain.amplitude
 	return value
+
+
+func _get_plane_mesh_arrays(chunk_size, resolution):
+	"""
+	Faster equivalent to:
+
+	var plane_mesh := PlaneMesh.new()
+	plane_mesh.size = Vector2(chunk_size, chunk_size)
+	plane_mesh.subdivide_depth = resolution - 2
+	plane_mesh.subdivide_width = resolution - 2
+	return plane_mesh.get_mesh_arrays()
+	"""
+	var vertices := PoolVector3Array()
+	vertices.resize(resolution * resolution)
+	for zi in range(resolution):
+		for xi in range(resolution):
+			var x = lerp(-chunk_size * 0.5, chunk_size * 0.5, float(xi) / (resolution - 1))
+			var z = lerp(-chunk_size * 0.5, chunk_size * 0.5, float(zi) / (resolution - 1))
+			vertices.set(xi + zi * resolution, Vector3(x, 0.0, z))
+	var normals := PoolVector3Array()
+	normals.resize(resolution * resolution)
+	for i in range(resolution * resolution):
+		normals.set(i, Vector3(0.0, 1.0, 0.0))
+	var tangents := PoolRealArray()
+	tangents.resize(4 * resolution * resolution)
+	for i in range(resolution * resolution):
+		tangents.set(i * 4, 1.0)
+		tangents.set(i * 4 + 1, 0.0)
+		tangents.set(i * 4 + 2, 0.0)
+		tangents.set(i * 4 + 3, 1.0)
+	var uvs := PoolVector2Array()
+	uvs.resize(resolution * resolution)
+	for zi in range(resolution):
+		for xi in range(resolution):
+			uvs.set(xi + zi * resolution, Vector2(float(xi) / (resolution - 1), float(zi) / (resolution - 1)))
+	var indices := PoolIntArray()
+	indices.resize(6 * (resolution - 1) * (resolution - 1))
+	for zi in range(resolution - 1):
+		for xi in range(resolution - 1):
+			indices.set((xi + zi * (resolution - 1)) * 6, xi + zi * resolution)
+			indices.set((xi + zi * (resolution - 1)) * 6 + 1, xi + 1 + zi * resolution)
+			indices.set((xi + zi * (resolution - 1)) * 6 + 2, xi + 1 + (zi + 1) * resolution)
+			indices.set((xi + zi * (resolution - 1)) * 6 + 3, xi + zi * resolution)
+			indices.set((xi + zi * (resolution - 1)) * 6 + 4, xi + 1 + (zi + 1) * resolution)
+			indices.set((xi + zi * (resolution - 1)) * 6 + 5, xi + (zi + 1) * resolution)
+	var arrays := []
+	arrays.resize(ArrayMesh.ARRAY_MAX)
+	arrays[ArrayMesh.ARRAY_VERTEX] = vertices
+	arrays[ArrayMesh.ARRAY_NORMAL] = normals
+	arrays[ArrayMesh.ARRAY_TEX_UV] = uvs
+	arrays[ArrayMesh.ARRAY_INDEX] = indices
+	return arrays

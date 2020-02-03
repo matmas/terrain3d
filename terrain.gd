@@ -17,36 +17,15 @@ var should_exit = false
 var should_exit_mutex := Mutex.new()
 var should_refresh = false
 var should_refresh_mutex := Mutex.new()
-var plane_mesh_arrays: Array
 
 
 func _ready():
-	_generate_plane_mesh()
-
 	observer_thread.start(self, "_observer_thread")
 
 	var timer := Timer.new()
 	timer.connect("timeout", self, "_on_Timer_timeout")
 	add_child(timer)
 	timer.start(0.1)
-
-
-func _get_configuration_warning():
-	if not noise:
-		return "This node has no noise defined."
-	return ""
-
-
-func _generate_plane_mesh():
-	var plane_mesh := PlaneMesh.new()
-	plane_mesh.size = Vector2(chunk_size, chunk_size)
-	plane_mesh.subdivide_depth = resolution - 2
-	plane_mesh.subdivide_width = resolution - 2
-	plane_mesh_arrays = plane_mesh.get_mesh_arrays()
-
-
-func get_plane_mesh_arrays():
-	return plane_mesh_arrays.duplicate(true)
 
 
 func _on_Timer_timeout():
@@ -155,7 +134,6 @@ func _set_refresh(value):
 
 func _set_chunk_size(value):
 	chunk_size = value
-	_generate_plane_mesh()
 	_set_refresh(true)
 
 
@@ -164,7 +142,6 @@ func _set_resolution(value):
 		resolution = clamp(value, 2, 129)
 	else:
 		resolution = nearest_po2(value - 1) + 1
-	_generate_plane_mesh()
 	_set_refresh(true)
 
 
@@ -188,3 +165,9 @@ func _set_noise(value):
 
 func _on_noise_changed():
 	_set_refresh(true)
+
+
+func _get_configuration_warning():
+	if not noise:
+		return "This node has no noise defined."
+	return ""
