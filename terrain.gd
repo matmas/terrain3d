@@ -6,7 +6,7 @@ onready var player = $"../Player"
 
 export(int, 0, 20) var radius = 8
 export(float) var chunk_size = 64 setget _set_chunk_size
-export(int, 2, 1025) var resolution = 33 setget _set_resolution
+export(int, 2, 129) var resolution = 33 setget _set_resolution
 export(float) var amplitude = 80 setget _set_amplitude
 export(float, EASE) var curve = 1 setget _set_curve
 export(OpenSimplexNoise) var noise setget _set_noise
@@ -151,7 +151,7 @@ func _set_chunk_size(value):
 
 func _set_resolution(value):
 	if value <= 3:
-		resolution = clamp(value, 2, 1025)
+		resolution = clamp(value, 2, 129)
 	else:
 		resolution = nearest_po2(value - 1) + 1
 	_generate_plane_mesh()
