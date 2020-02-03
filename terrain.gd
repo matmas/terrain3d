@@ -31,12 +31,6 @@ func _ready():
 	timer.start(0.1)
 
 
-func _get_configuration_warning():
-	if not noise:
-		return "This node has no noise defined."
-	return ""
-
-
 func _generate_plane_mesh():
 	var plane_mesh := PlaneMesh.new()
 	plane_mesh.size = Vector2(chunk_size, chunk_size)
@@ -188,3 +182,9 @@ func _set_noise(value):
 
 func _on_noise_changed():
 	_set_refresh(true)
+
+
+func _get_configuration_warning():
+	if not noise:
+		return "This node has no noise defined."
+	return ""
