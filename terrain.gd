@@ -4,6 +4,8 @@ class_name Terrain
 
 onready var player = $"../Player"
 
+const MAX_RESOLUTION = 129
+
 export(int, 0, 20) var radius = 8
 export(float) var chunk_size = 64 setget _set_chunk_size
 export(int, 2, 129) var resolution = 33 setget _set_resolution
@@ -17,11 +19,11 @@ var should_exit = false
 var should_exit_mutex := Mutex.new()
 var should_refresh = false
 var should_refresh_mutex := Mutex.new()
-var plane_mesh_arrays: Array
+var res_to_plane_mesh_arrays: Dictionary
 
 
 func _ready():
-	_generate_plane_mesh()
+	_generate_plane_meshes()
 
 	observer_thread.start(self, "_observer_thread")
 
@@ -31,16 +33,24 @@ func _ready():
 	timer.start(0.1)
 
 
-func _generate_plane_mesh():
-	var plane_mesh := PlaneMesh.new()
-	plane_mesh.size = Vector2(chunk_size, chunk_size)
-	plane_mesh.subdivide_depth = resolution - 2
-	plane_mesh.subdivide_width = resolution - 2
-	plane_mesh_arrays = plane_mesh.get_mesh_arrays()
+func _generate_plane_meshes():
+	for res in _get_possible_resolutions(resolution):
+		var plane_mesh := PlaneMesh.new()
+		plane_mesh.size = Vector2(chunk_size, chunk_size)
+		plane_mesh.subdivide_depth = res - 2
+		plane_mesh.subdivide_width = res - 2
+		res_to_plane_mesh_arrays[res] = plane_mesh.get_mesh_arrays()
 
 
-func get_plane_mesh_arrays():
-	return plane_mesh_arrays.duplicate(true)
+func _get_possible_resolutions(max_resolution=MAX_RESOLUTION):
+	var resolutions := [2]
+	while resolutions.back() < max_resolution:
+		resolutions.append((resolutions.back() - 1) * 2 + 1)
+	return resolutions
+
+
+func get_plane_mesh_arrays(res):
+	return res_to_plane_mesh_arrays[res].duplicate(true)
 
 
 func _on_Timer_timeout():
@@ -109,7 +119,7 @@ func _create_chunks(chunks, chunks_to_create):
 
 
 func _create_chunk(xz) -> Chunk:
-	var chunk := Chunk.new(noise, xz[0], xz[1], self)
+	var chunk := Chunk.new(xz[0], xz[1], resolution, self)
 	call_deferred("add_child", chunk)
 	return chunk
 
@@ -149,16 +159,16 @@ func _set_refresh(value):
 
 func _set_chunk_size(value):
 	chunk_size = value
-	_generate_plane_mesh()
+	_generate_plane_meshes()
 	_set_refresh(true)
 
 
 func _set_resolution(value):
 	if value <= 3:
-		resolution = clamp(value, 2, 129)
+		resolution = clamp(value, 2, MAX_RESOLUTION)
 	else:
 		resolution = nearest_po2(value - 1) + 1
-	_generate_plane_mesh()
+	_generate_plane_meshes()
 	_set_refresh(true)
 
 
