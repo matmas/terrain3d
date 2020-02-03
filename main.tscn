@@ -33,7 +33,7 @@ __meta__ = {
 }
 
 [node name="Player" parent="." instance=ExtResource( 1 )]
-transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 100, 0 )
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 82, 0 )
 
 [node name="DirectionalLight" type="DirectionalLight" parent="."]
-transform = Transform( 1, 0, 0, 0, -0.928012, 0.37255, 0, -0.37255, -0.928012, 0, 200, 0 )
+transform = Transform( 1, 0, 0, 0, -0.648466, 0.761244, 0, -0.761244, -0.648466, 0, 100, 0 )

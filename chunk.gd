@@ -24,7 +24,7 @@ func _init(noise, x, z, terrain):
 		var point = Vector2(vertices[i].x, vertices[i].z)
 		var height := _height(point)
 		arrays[Mesh.ARRAY_VERTEX][i].y = height
-		var delta = Vector2(vertices[i].length() / 80, 0)
+		var delta = Vector2(terrain.chunk_size * 0.5 / terrain.resolution, 0)
 		arrays[Mesh.ARRAY_NORMAL][i] = Vector3(height - _height(point + delta), delta.x, height - _height(point - delta.tangent()))
 
 	var mesh = ArrayMesh.new()
