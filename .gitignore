@@ -1,1 +1,7 @@
 .import/
+.sconsign.dblite
+src/*.os
+survival/bin/x11
+survival/bin/win64
+ysurvival/bin/osx
+.vscode/
