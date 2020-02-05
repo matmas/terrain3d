@@ -4,11 +4,11 @@ class_name Terrain
 
 onready var player = $"../Player"
 
-const MAX_RESOLUTION = 129
+const MAX_RESOLUTION = 513
 
 export(int, 0, 20) var radius = 8
 export(float) var chunk_size = 64 setget _set_chunk_size
-export(int, 2, 129) var resolution = 33 setget _set_resolution
+export(int, 2, 513) var resolution = 33 setget _set_resolution
 export(float) var amplitude = 80 setget _set_amplitude
 export(float, EASE) var curve = 1 setget _set_curve
 export(OpenSimplexNoise) var noise setget _set_noise
@@ -19,12 +19,9 @@ var should_exit = false
 var should_exit_mutex := Mutex.new()
 var should_refresh = false
 var should_refresh_mutex := Mutex.new()
-var res_to_plane_mesh_arrays: Dictionary
 
 
 func _ready():
-	_generate_plane_meshes()
-
 	observer_thread.start(self, "_observer_thread")
 
 	var timer := Timer.new()
@@ -33,24 +30,11 @@ func _ready():
 	timer.start(0.1)
 
 
-func _generate_plane_meshes():
-	for res in _get_possible_resolutions(resolution):
-		var plane_mesh := PlaneMesh.new()
-		plane_mesh.size = Vector2(chunk_size, chunk_size)
-		plane_mesh.subdivide_depth = res - 2
-		plane_mesh.subdivide_width = res - 2
-		res_to_plane_mesh_arrays[res] = plane_mesh.get_mesh_arrays()
-
-
-func _get_possible_resolutions(max_resolution=MAX_RESOLUTION):
-	var resolutions := [2]
-	while resolutions.back() < max_resolution:
-		resolutions.append((resolutions.back() - 1) * 2 + 1)
-	return resolutions
-
-
-func get_plane_mesh_arrays(res):
-	return res_to_plane_mesh_arrays[res].duplicate(true)
+#func _get_possible_resolutions(max_resolution=MAX_RESOLUTION):
+#	var resolutions := [2]
+#	while resolutions.back() < max_resolution:
+#		resolutions.append((resolutions.back() - 1) * 2 + 1)
+#	return resolutions
 
 
 func _on_Timer_timeout():
@@ -159,7 +143,6 @@ func _set_refresh(value):
 
 func _set_chunk_size(value):
 	chunk_size = value
-	_generate_plane_meshes()
 	_set_refresh(true)
 
 
@@ -168,7 +151,6 @@ func _set_resolution(value):
 		resolution = clamp(value, 2, MAX_RESOLUTION)
 	else:
 		resolution = nearest_po2(value - 1) + 1
-	_generate_plane_meshes()
 	_set_refresh(true)
 
 

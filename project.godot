@@ -24,16 +24,16 @@ _global_script_classes=[ {
 "language": "GDScript",
 "path": "res://terrain.gd"
 }, {
-"base": "",
-"class": "TerrainChunk",
+"base": "Reference",
+"class": "TerrainGenerator",
 "language": "NativeScript",
-"path": "res://bin/terrain_chunk.gdns"
+"path": "res://gdnative/terrain_generator.gdns"
 } ]
 _global_script_class_icons={
 "BinarySemaphore": "",
 "Chunk": "",
 "Terrain": "",
-"TerrainChunk": ""
+"TerrainGenerator": ""
 }
 
 [application]

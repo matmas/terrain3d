@@ -11,12 +11,12 @@ opts.Add(EnumVariable('target', "Compilation target", 'debug', ['d', 'debug', 'r
 opts.Add(EnumVariable('platform', "Compilation platform", 'linux', ['', 'windows', 'x11', 'linux', 'osx']))
 opts.Add(EnumVariable('p', "Compilation target, alias for 'platform'", '', ['', 'windows', 'x11', 'linux', 'osx']))
 opts.Add(BoolVariable('use_llvm', "Use the LLVM / Clang compiler", 'no'))
-opts.Add(PathVariable('target_path', 'The path where the lib should be installed.', 'survival/bin/'))
+opts.Add(PathVariable('target_path', 'The path where the lib should be installed.', 'bin/'))
 opts.Add(PathVariable('target_name', 'The library name.', 'libgdlibrary', PathVariable.PathAccept))
 
 # Local dependency paths, adapt them to your setup
-godot_headers_path = "godot-cpp/godot_headers/"
-cpp_bindings_path = "godot-cpp/"
+godot_headers_path = "vendor/godot-cpp/godot_headers/"
+cpp_bindings_path = "vendor/godot-cpp/"
 cpp_library = "libgodot-cpp"
 
 # only support 64 at this time..
@@ -90,26 +90,18 @@ else:
 
 cpp_library += '.' + str(bits)
 
-fastnoisesimd_path = "FastNoiseSIMD/FastNoiseSIMD/"
-fastnoisesimd_env = DefaultEnvironment()
-fastnoisesimd_env.Append(CXXFLAGS=['-std=c++11'])
-fastnoisesimd_library = 'libfast_noise_simd.linux.64'
-fastnoisesimd_target = fastnoisesimd_path + 'bin/' + fastnoisesimd_library + fastnoisesimd_env['LIBSUFFIX']
-fastnoisesimd_sources = [
-    fastnoisesimd_path + 'FastNoiseSIMD.cpp',
-    fastnoisesimd_path + 'FastNoiseSIMD_neon.cpp',
-    fastnoisesimd_path + 'FastNoiseSIMD_internal.cpp',
-    fastnoisesimd_env.Object(fastnoisesimd_path + 'FastNoiseSIMD_sse2.cpp', CXXFLAGS='-msse2'),
-    fastnoisesimd_env.Object(fastnoisesimd_path + 'FastNoiseSIMD_sse41.cpp', CXXFLAGS='-msse4.1'),
-    fastnoisesimd_env.Object(fastnoisesimd_path + 'FastNoiseSIMD_avx2.cpp', CXXFLAGS='-mavx2'),
-    fastnoisesimd_env.Object(fastnoisesimd_path + 'FastNoiseSIMD_avx512.cpp', CXXFLAGS='-mavx512f'),
-]
-Default(fastnoisesimd_env.StaticLibrary(target=fastnoisesimd_target, source=fastnoisesimd_sources))
+fastnoise_path = "vendor/FastNoise/"
+fastnoise_env = DefaultEnvironment()
+fastnoise_env.Append(CXXFLAGS=['-std=c++11'])
+fastnoise_library = 'libfastnoise.linux.64'
+fastnoise_target = fastnoise_path + 'bin/' + fastnoise_library + fastnoise_env['LIBSUFFIX']
+fastnoise_sources = [fastnoise_path + 'FastNoise.cpp']
+Default(fastnoise_env.StaticLibrary(target=fastnoise_target, source=fastnoise_sources))
 
 # make sure our binding library is properly included
-env.Append(CPPPATH=['.', godot_headers_path, cpp_bindings_path + 'include/', cpp_bindings_path + 'include/core/', cpp_bindings_path + 'include/gen/', fastnoisesimd_path])
-env.Append(LIBPATH=[cpp_bindings_path + 'bin/', fastnoisesimd_path + 'bin/'])
-env.Append(LIBS=[cpp_library, fastnoisesimd_library])
+env.Append(CPPPATH=['.', godot_headers_path, cpp_bindings_path + 'include/', cpp_bindings_path + 'include/core/', cpp_bindings_path + 'include/gen/', fastnoise_path])
+env.Append(LIBPATH=[cpp_bindings_path + 'bin/', fastnoise_path + 'bin/'])
+env.Append(LIBS=[cpp_library, fastnoise_library])
 
 # tweak this if you want to use different folders, or more folders, to store your source code in.
 env.Append(CPPPATH=['src/'])

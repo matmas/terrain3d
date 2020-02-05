@@ -1,7 +1,9 @@
 .import/
-.sconsign.dblite
-src/*.os
-survival/bin/x11
-survival/bin/win64
-ysurvival/bin/osx
-.vscode/
+gdnative/.sconsign.dblite
+gdnative/src/*.os
+gdnative/bin/x11/
+gdnative/bin/win64/
+gdnative/bin/osx/
+gdnative/.vscode/
+gdnative/vendor/**/*.o
+gdnative/vendor/**/*.a

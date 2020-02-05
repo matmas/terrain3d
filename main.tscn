@@ -19,7 +19,7 @@ func _process(_delta):
 
 [node name="Terrain" type="Spatial" parent="."]
 script = ExtResource( 2 )
-resolution = 129
+resolution = 257
 curve = -0.353553
 noise = SubResource( 1 )
 
