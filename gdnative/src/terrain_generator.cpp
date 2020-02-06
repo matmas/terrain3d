@@ -35,9 +35,10 @@ float TerrainGenerator::_height(Vector2 point, float chunk_size, int x, int z, f
 }
 
 Array TerrainGenerator::generate_arrays(int resolution, float chunk_size, int x, int z, float curve, float amplitude) {
-    Array arrays = get_plane_mesh_arrays(chunk_size, resolution);
-    PoolVector3Array vertices = arrays[Mesh::ARRAY_VERTEX];
-    PoolVector3Array normals = arrays[Mesh::ARRAY_NORMAL];
+    Array plane_mesh_arrays = get_plane_mesh_arrays(chunk_size, resolution);
+    PoolVector3Array vertices = plane_mesh_arrays[Mesh::ARRAY_VERTEX];
+    PoolVector3Array normals;
+    normals.resize(resolution * resolution);
     {
         PoolVector3Array::Read vertices_r = vertices.read();
         PoolVector3Array::Write vertices_w = vertices.write();
@@ -52,7 +53,12 @@ Array TerrainGenerator::generate_arrays(int resolution, float chunk_size, int x,
             normals_w[i] = Vector3(height - _height(point + delta, chunk_size, x, z, curve, amplitude), delta.x, height - _height(point - delta.tangent(), chunk_size, x, z, curve, amplitude));
         }
     }
+    Array arrays;
+    arrays.resize(Mesh::ARRAY_MAX);
     arrays[Mesh::ARRAY_VERTEX] = vertices;
     arrays[Mesh::ARRAY_NORMAL] = normals;
+    arrays[Mesh::ARRAY_TANGENT] = plane_mesh_arrays[Mesh::ARRAY_TANGENT];
+    arrays[Mesh::ARRAY_TEX_UV] = plane_mesh_arrays[Mesh::ARRAY_TEX_UV];
+    arrays[Mesh::ARRAY_INDEX] = plane_mesh_arrays[Mesh::ARRAY_INDEX];
     return arrays;
 }
