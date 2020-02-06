@@ -1,13 +1,9 @@
-[gd_scene load_steps=5 format=2]
+[gd_scene load_steps=4 format=2]
 
 [ext_resource path="res://player.tscn" type="PackedScene" id=1]
 [ext_resource path="res://terrain.gd" type="Script" id=2]
 
-[sub_resource type="OpenSimplexNoise" id=1]
-persistence = 0.164
-lacunarity = 4.0
-
-[sub_resource type="GDScript" id=2]
+[sub_resource type="GDScript" id=1]
 script/source = "extends Label
 
 
@@ -21,14 +17,14 @@ func _process(_delta):
 script = ExtResource( 2 )
 resolution = 257
 curve = -0.353553
-noise = SubResource( 1 )
+lacunarity = 4.0
 
 [node name="CanvasLayer" type="CanvasLayer" parent="."]
 
 [node name="FPS" type="Label" parent="CanvasLayer"]
 custom_colors/font_color_shadow = Color( 0, 0, 0, 1 )
 custom_constants/shadow_as_outline = 1
-script = SubResource( 2 )
+script = SubResource( 1 )
 __meta__ = {
 "_edit_use_anchors_": false
 }

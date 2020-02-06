@@ -6,23 +6,27 @@
 using namespace godot;
 
 void TerrainGenerator::_register_methods() {
+    register_method("set_params", &TerrainGenerator::set_params);
     register_method("generate_arrays", &TerrainGenerator::generate_arrays);
 }
 
 TerrainGenerator::TerrainGenerator() {
     noise.SetNoiseType(FastNoise::SimplexFractal);
-    noise.SetSeed(0);
-    noise.SetFrequency(1.0 / 64);
     noise.SetFractalType(FastNoise::FractalType::FBM);
-    noise.SetFractalOctaves(3);
-    noise.SetFractalLacunarity(4.0);
-    noise.SetFractalGain(0.164);
 }
 
 TerrainGenerator::~TerrainGenerator() {
 }
 
 void TerrainGenerator::_init() {
+}
+
+void TerrainGenerator::set_params(int seed, float frequency, int octaves, float lacunarity, float gain) {
+    noise.SetSeed(seed);
+    noise.SetFrequency(frequency);
+    noise.SetFractalOctaves(octaves);
+    noise.SetFractalLacunarity(lacunarity);
+    noise.SetFractalGain(gain);
 }
 
 float TerrainGenerator::_height(Vector2 point, float chunk_size, int x, int z, float curve, float amplitude) {

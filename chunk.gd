@@ -13,7 +13,7 @@ func _init(x, z, resolution, terrain):
 	self.translation = Vector3(x * terrain.chunk_size, 0, z * terrain.chunk_size)
 	self.terrain = terrain
 	self.terrain_generator = TerrainGenerator.new()
-
+	terrain_generator.set_params(terrain.noise_seed, terrain.frequency, terrain.octaves, terrain.lacunarity, terrain.gain)
 	var arrays = terrain_generator.generate_arrays(resolution, terrain.chunk_size, x, z, terrain.curve, terrain.amplitude)
 	var mesh = ArrayMesh.new()
 	mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, arrays)
@@ -26,12 +26,3 @@ func _init(x, z, resolution, terrain):
 
 func _ready():
 	add_child(mesh_instance)
-
-
-func _height(point) -> float:
-	var value = terrain.noise.get_noise_2d(x * terrain.chunk_size + point.x, z * terrain.chunk_size + point.y)  # from -1.0 to 1.0
-	value = (value + 1.0) * 0.5  # from 0.0 to 1.0
-	value = ease(value, terrain.curve)
-	value = value * 2.0 - 1.0  # from -1.0 to 1.0
-	value *= terrain.amplitude
-	return value

@@ -11,7 +11,11 @@ export(float) var chunk_size = 64 setget _set_chunk_size
 export(int, 2, 513) var resolution = 33 setget _set_resolution
 export(float) var amplitude = 80 setget _set_amplitude
 export(float, EASE) var curve = 1 setget _set_curve
-export(OpenSimplexNoise) var noise setget _set_noise
+export(int) var noise_seed = 0 setget _set_noise_seed
+export(float, 0.00390625, 10.0) var frequency = 1.0 / 64 setget _set_frequency
+export(int, 1, 6) var octaves = 3 setget _set_octaves
+export(float, 0.1, 4.0) var lacunarity = 2.0 setget _set_lacunarity
+export(float, 0.0, 1.0) var gain = 0.164 setget _set_gain
 
 var observer_thread := Thread.new()
 var semaphore := BinarySemaphore.new()
@@ -164,19 +168,26 @@ func _set_amplitude(value):
 	_set_refresh(true)
 
 
-func _set_noise(value):
-	noise = value
-	_set_refresh(true)
-	if noise:
-		if not noise.is_connected("changed", self, "_on_noise_changed"):
-			noise.connect("changed", self, "_on_noise_changed")
-
-
-func _on_noise_changed():
+func _set_noise_seed(value):
+	noise_seed = value
 	_set_refresh(true)
 
 
-func _get_configuration_warning():
-	if not noise:
-		return "This node has no noise defined."
-	return ""
+func _set_frequency(value):
+	frequency = value
+	_set_refresh(true)
+
+
+func _set_octaves(value):
+	octaves = value
+	_set_refresh(true)
+
+
+func _set_lacunarity(value):
+	lacunarity = value
+	_set_refresh(true)
+
+
+func _set_gain(value):
+	gain = value
+	_set_refresh(true)
