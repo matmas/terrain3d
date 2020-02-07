@@ -12,7 +12,9 @@ class TerrainGenerator : public Reference {
 
 private:
     FastNoise noise;
-    float _height(Vector2 point, float chunk_size, int x, int z, float curve, float amplitude);
+    float curve;
+    float amplitude;
+    float _height(Vector2 point);
 
 public:
     static void _register_methods();
@@ -21,8 +23,8 @@ public:
     ~TerrainGenerator();
 
     void _init();
-    void set_params(int seed, float frequency, int octaves, float lacunarity, float gain);
-    Array generate_arrays(int resolution, float chunk_size, int x, int z, float curve, float amplitude);
+    void set_params(int seed, float frequency, int octaves, float lacunarity, float gain, float curve, float amplitude);
+    Array generate_arrays(int resolution, float chunk_size, Vector2 position);
 };
 
 }

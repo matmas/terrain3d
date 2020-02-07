@@ -21,24 +21,26 @@ TerrainGenerator::~TerrainGenerator() {
 void TerrainGenerator::_init() {
 }
 
-void TerrainGenerator::set_params(int seed, float frequency, int octaves, float lacunarity, float gain) {
+void TerrainGenerator::set_params(int seed, float frequency, int octaves, float lacunarity, float gain, float curve, float amplitude) {
     noise.SetSeed(seed);
     noise.SetFrequency(frequency);
     noise.SetFractalOctaves(octaves);
     noise.SetFractalLacunarity(lacunarity);
     noise.SetFractalGain(gain);
+    this->curve = curve;
+    this->amplitude = amplitude;
 }
 
-float TerrainGenerator::_height(Vector2 point, float chunk_size, int x, int z, float curve, float amplitude) {
-    float value = this->noise.GetNoise(x * chunk_size + point.x, z * chunk_size + point.y);  // from -1.0 to 1.0
+float TerrainGenerator::_height(Vector2 point) {
+    float value = this->noise.GetNoise(point.x, point.y);  // from -1.0 to 1.0
 	value = (value + 1.0) * 0.5;  // from 0.0 to 1.0
-	value = ease(value, curve);
+	value = ease(value, this->curve);
 	value = value * 2.0 - 1.0;  // from -1.0 to 1.0
-	value *= amplitude;
+	value *= this->amplitude;
 	return value;
 }
 
-Array TerrainGenerator::generate_arrays(int resolution, float chunk_size, int x, int z, float curve, float amplitude) {
+Array TerrainGenerator::generate_arrays(int resolution, float chunk_size, Vector2 position) {
     Array plane_mesh_arrays = get_plane_mesh_arrays(chunk_size, resolution);
     PoolVector3Array vertices = plane_mesh_arrays[Mesh::ARRAY_VERTEX];
     PoolVector3Array normals;
@@ -50,11 +52,11 @@ Array TerrainGenerator::generate_arrays(int resolution, float chunk_size, int x,
 
         for (int i = 0; i < resolution * resolution; i++) {
             Vector3 vertex = vertices_r[i];
-            Vector2 point = Vector2(vertex.x, vertex.z);
-            float height = this->_height(point, chunk_size, x, z, curve, amplitude);
+            Vector2 vertex_position = position + Vector2(vertex.x, vertex.z);
+            float height = this->_height(vertex_position);
             vertices_w[i].y = height;
             Vector2 delta = Vector2(chunk_size * 0.5 / resolution, 0);
-            normals_w[i] = Vector3(height - _height(point + delta, chunk_size, x, z, curve, amplitude), delta.x, height - _height(point - delta.tangent(), chunk_size, x, z, curve, amplitude));
+            normals_w[i] = Vector3(height - _height(vertex_position + delta), delta.x, height - _height(vertex_position - delta.tangent()));
         }
     }
     Array arrays;
