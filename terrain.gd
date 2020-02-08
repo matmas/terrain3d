@@ -2,8 +2,6 @@ tool
 extends Spatial
 class_name Terrain
 
-onready var player = $"../Player"
-
 const MAX_RESOLUTION = 257
 enum Resolution {
 	_2 = 2,
@@ -68,7 +66,7 @@ func _observer_thread(_userdata):
 			root = _get_new_root()
 			call_deferred("add_child", root)
 
-		root.update(self, player.translation)
+		root.update(self)
 
 
 func _exit_tree():
