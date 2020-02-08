@@ -65,6 +65,9 @@ func process_input(_delta):
 			Input.set_mouse_mode(Input.MOUSE_MODE_CAPTURED)
 		else:
 			Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE)
+
+	if Input.is_action_just_pressed("quit"):
+		get_tree().quit()
 	# ----------------------------------
 
 func process_movement(delta):
