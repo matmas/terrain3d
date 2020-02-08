@@ -11,6 +11,10 @@ var children = []
 var mesh_instance: MeshInstance
 
 
+enum Child { NW, NE, SW, SE }
+enum Direction { N, S, W, E }
+
+
 func _init(parent, position: Vector3, size: float, resolution: int):
 	self.parent = parent
 	self.position = position
@@ -52,11 +56,11 @@ func update_mesh(terrain):
 		if mesh_instance == null:
 			var terrain_generator = TerrainGenerator.new()
 			terrain_generator.set_params(terrain.noise_seed, terrain.frequency, terrain.octaves, terrain.lacunarity, terrain.gain, terrain.curve, terrain.amplitude)
-			var reduce_top = translation.z < 0;
-			var reduce_bottom = translation.z > 0;
-			var reduce_left = translation.x < 0;
-			var reduce_right = translation.x > 0;
-			var arrays = terrain_generator.generate_arrays(self.resolution, self.size, Vector2(self.position.x, self.position.z), reduce_top, reduce_bottom, reduce_left, reduce_right)
+			var arrays = terrain_generator.generate_arrays(self.resolution, self.size, Vector2(self.position.x, self.position.z),
+				_should_reduce(Direction.N),
+				_should_reduce(Direction.S),
+				_should_reduce(Direction.W),
+				_should_reduce(Direction.E))
 			var mesh = ArrayMesh.new()
 			mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, arrays)
 			mesh.surface_set_material(0, preload("res://terrain.material"))
@@ -67,6 +71,49 @@ func update_mesh(terrain):
 			for child in children:
 				child.queue_free()
 			children.clear()
+
+
+func _should_reduce(direction):
+	var neighbor = _get_neighbor(direction)
+	if not neighbor:
+		return false
+	return self.size < neighbor.size
+
+
+func _get_neighbor(direction):
+	if not parent:
+		return null
+	if direction == Direction.N:
+		if parent.children[Child.SE] == self:
+			return parent.children[Child.NE]
+		if parent.children[Child.SW] == self:
+			return parent.children[Child.NW]
+	if direction == Direction.S:
+		if parent.children[Child.NE] == self:
+			return parent.children[Child.SE]
+		if parent.children[Child.NW] == self:
+			return parent.children[Child.SW]
+	if direction == Direction.W:
+		if parent.children[Child.NE] == self:
+			return parent.children[Child.NW]
+		if parent.children[Child.SE] == self:
+			return parent.children[Child.SW]
+	if direction == Direction.E:
+		if parent.children[Child.NW] == self:
+			return parent.children[Child.NE]
+		if parent.children[Child.SW] == self:
+			return parent.children[Child.SE]
+	var node = self.parent._get_neighbor(direction)
+	if not node or not node.children:
+		return node
+	if direction == Direction.N:
+		return node.children[Child.SW] if parent.children[Child.NW] == self else node.children[Child.SE]
+	if direction == Direction.S:
+		return node.children[Child.NW] if parent.children[Child.SW] == self else node.children[Child.NE]
+	if direction == Direction.W:
+		return node.children[Child.NE] if parent.children[Child.NW] == self else node.children[Child.SE]
+	if direction == Direction.E:
+		return node.children[Child.NW] if parent.children[Child.NE] == self else node.children[Child.SW]
 
 
 func _screen_space_vertex_error():
