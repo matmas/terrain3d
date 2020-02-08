@@ -13,6 +13,7 @@ enum Resolution {
 	_257 = 257,
 	_513 = 513,
 }
+export(float) var max_screen_space_vertex_error = 10 setget _set_max_screen_space_vertex_error
 export(float) var size = 10000.0 setget _set_size
 export(Resolution) var resolution = Resolution._129 setget _set_resolution
 export(float) var amplitude = 25.0 setget _set_amplitude
@@ -64,7 +65,7 @@ func _observer_thread(_userdata):
 			root = _get_new_root()
 			call_deferred("add_child", root)
 
-		root.update_structure()
+		root.update_structure(max_screen_space_vertex_error)
 		root.update_mesh(self)
 
 
@@ -99,6 +100,11 @@ func _set_refresh(value):
 	should_refresh_mutex.lock()
 	should_refresh = value
 	should_refresh_mutex.unlock()
+
+
+func _set_max_screen_space_vertex_error(value):
+	max_screen_space_vertex_error = value
+	_set_refresh(true)
 
 
 func _set_size(value):

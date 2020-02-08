@@ -20,19 +20,19 @@ func _init(parent, position: Vector3, size: float, resolution: int):
 	self.translation = position - parent_position
 
 
-func update_structure():
-	should_be_split = (_screen_space_vertex_error() > 10)
+func update_structure(max_screen_space_vertex_error):
+	should_be_split = (_screen_space_vertex_error() > max_screen_space_vertex_error)
 	if should_be_split:
 		if children == []:
-			for i in [-1, 1]:
-				for j in [-1, 1]:
-					var child_offset = Vector3(i * size / 4, 0.0, j * size / 4)
+			for zi in range(2):
+				for xi in range(2):
+					var child_offset = Vector3((xi * 2 - 1) * size / 4, 0.0, (zi * 2 - 1) * size / 4)
 					var child_size = size / 2
 					var child = load("res://terrain_node.gd").new(self, self.position + child_offset, child_size, self.resolution)
 					children.append(child)
 					call_deferred("add_child", child)
 		for child in children:
-			child.update_structure()
+			child.update_structure(max_screen_space_vertex_error)
 
 
 func update_mesh(terrain):
