@@ -6,6 +6,7 @@ var size: float
 var resolution: int
 
 var parent
+var should_be_split = false
 var children = []
 var mesh_instance: MeshInstance
 
@@ -19,8 +20,35 @@ func _init(parent, position: Vector3, size: float, resolution: int):
 	self.translation = position - parent_position
 
 
-func update(terrain):
-	if _screen_space_vertex_error() < 10:
+func update_structure():
+	should_be_split = (_screen_space_vertex_error() > 10)
+	if should_be_split:
+		if children == []:
+			for i in [-1, 1]:
+				for j in [-1, 1]:
+					var child_offset = Vector3(i * size / 4, 0.0, j * size / 4)
+					var child_size = size / 2
+					var child = load("res://terrain_node.gd").new(self, self.position + child_offset, child_size, self.resolution)
+					children.append(child)
+					call_deferred("add_child", child)
+		for child in children:
+			child.update_structure()
+
+
+func update_mesh(terrain):
+	if should_be_split:
+		var threads := []
+		for child in children:
+			var thread := Thread.new()
+			thread.start(child, "update_mesh", terrain)
+			threads.append(thread)
+		for thread in threads:
+			thread.wait_to_finish()
+
+		if mesh_instance != null:
+			mesh_instance.queue_free()
+			mesh_instance = null
+	else:
 		if mesh_instance == null:
 			var terrain_generator = TerrainGenerator.new()
 			terrain_generator.set_params(terrain.noise_seed, terrain.frequency, terrain.octaves, terrain.lacunarity, terrain.gain, terrain.curve, terrain.amplitude)
@@ -39,34 +67,6 @@ func update(terrain):
 			for child in children:
 				child.queue_free()
 			children.clear()
-	else:
-		if children == []:
-			for i in [-1, 1]:
-				for j in [-1, 1]:
-					var child_offset = Vector3(i * size / 4, 0.0, j * size / 4)
-					var child_size = size / 2
-					var child = load("res://terrain_node.gd").new(self, self.position + child_offset, child_size, self.resolution)
-					children.append(child)
-
-		var threads := []
-		for child in children:
-			var thread := Thread.new()
-			thread.start(child, "update", terrain)
-			threads.append(thread)
-
-		for thread in threads:
-			thread.wait_to_finish()
-
-		if mesh_instance != null:
-			mesh_instance.queue_free()
-			mesh_instance = null
-		call_deferred("_add_children")
-
-
-func _add_children():
-	for child in children:
-		if not child.is_inside_tree():
-			add_child(child)
 
 
 func _screen_space_vertex_error():

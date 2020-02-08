@@ -64,7 +64,8 @@ func _observer_thread(_userdata):
 			root = _get_new_root()
 			call_deferred("add_child", root)
 
-		root.update(self)
+		root.update_structure()
+		root.update_mesh(self)
 
 
 func _exit_tree():
