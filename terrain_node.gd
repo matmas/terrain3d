@@ -15,9 +15,7 @@ func _init(parent: TerrainNode, position: Vector3, size: float, resolution: int)
 	self.position = position
 	self.size = size
 	self.resolution = resolution
-	var parent_position = Vector3.ZERO
-	if parent != null:
-		parent_position = parent.position
+	var parent_position = parent.position if parent != null else Vector3.ZERO
 	self.translation = position - parent_position
 
 
@@ -25,7 +23,12 @@ func update(terrain, camera_position: Vector3):
 	if mesh_instance == null:
 		var terrain_generator = TerrainGenerator.new()
 		terrain_generator.set_params(terrain.noise_seed, terrain.frequency, terrain.octaves, terrain.lacunarity, terrain.gain, terrain.curve, terrain.amplitude)
-		var arrays = terrain_generator.generate_arrays(self.resolution, self.size, Vector2(self.position.x, self.position.z))
+		var reduce_top = translation.z < 0;
+		var reduce_bottom = translation.z > 0;
+		var reduce_left = translation.x < 0;
+		var reduce_right = translation.x > 0;
+
+		var arrays = terrain_generator.generate_arrays(self.resolution, self.size, Vector2(self.position.x, self.position.z), reduce_top, reduce_bottom, reduce_left, reduce_right)
 		var mesh = ArrayMesh.new()
 		mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, arrays)
 		mesh.surface_set_material(0, preload("res://terrain.material"))

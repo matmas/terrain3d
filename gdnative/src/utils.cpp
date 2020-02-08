@@ -1,4 +1,5 @@
 #include <math.h>
+#include <assert.h>
 #include <ArrayMesh.hpp>
 #include "utils.hpp"
 
@@ -32,7 +33,8 @@ float lerp(float a, float b, float t) {
     return a + (b - a) * t;
 }
 
-Array get_plane_mesh_arrays(float chunk_size, int resolution) {
+// resolution needs to be power of two + 1 and >= 3
+Array get_plane_mesh_arrays(float chunk_size, int resolution, bool reduce_top, bool reduce_bottom, bool reduce_left, bool reduce_right) {
     PoolVector3Array vertices;
     vertices.resize(resolution * resolution);
     {
@@ -75,19 +77,91 @@ Array get_plane_mesh_arrays(float chunk_size, int resolution) {
         }
     }
     PoolIntArray indices;
-    indices.resize(6 * (resolution - 1) * (resolution - 1));
+    int indices_size = 3 * 8 * (resolution - 1) / 2 * (resolution - 1) / 2;
+    if (reduce_top) {
+        indices_size -= 3 * (resolution - 1) / 2;
+    }
+    if (reduce_bottom) {
+        indices_size -= 3 * (resolution - 1) / 2;
+    }
+    if (reduce_left) {
+        indices_size -= 3 * (resolution - 1) / 2;
+    }
+    if (reduce_right) {
+        indices_size -= 3 * (resolution - 1) / 2;
+    }
+    indices.resize(indices_size);
     {
         PoolIntArray::Write w = indices.write();
-        for (int zi = 0; zi < resolution - 1; zi++) {
-            for (int xi = 0; xi < resolution - 1; xi++) {
-                w[(xi + zi * (resolution - 1)) * 6] = xi + zi * resolution;
-                w[(xi + zi * (resolution - 1)) * 6 + 1] = xi + 1 + zi * resolution;
-                w[(xi + zi * (resolution - 1)) * 6 + 2] = xi + 1 + (zi + 1) * resolution;
-                w[(xi + zi * (resolution - 1)) * 6 + 3] = xi + zi * resolution;
-                w[(xi + zi * (resolution - 1)) * 6 + 4] = xi + 1 + (zi + 1) * resolution;
-                w[(xi + zi * (resolution - 1)) * 6 + 5] = xi + (zi + 1) * resolution;
+        int i = 0;
+        for (int zi = 0; zi < resolution - 1; zi+=2) {
+            for (int xi = 0; xi < resolution - 1; xi+=2) {
+                // 0-1-2-3-4
+                // |\ /|\ /|
+                // 5 6-7-8 9
+                // |/|\|/|\|
+                // a-b-c-d-e
+                // |\|/|\|/|
+                // f g-h-i j
+                // |/ \|/ \|
+                // k-l-m-n-o
+
+                if (reduce_top && (zi == 0)) {
+                    w[i++] = xi + 0 + (zi + 0) * resolution;  // 0
+                    w[i++] = xi + 2 + (zi + 0) * resolution;  // 2 (top triangle)
+                    w[i++] = xi + 1 + (zi + 1) * resolution;  // 6
+                } else {
+                    w[i++] = xi + 0 + (zi + 0) * resolution;  // 0
+                    w[i++] = xi + 1 + (zi + 0) * resolution;  // 1 (1st top triangle)
+                    w[i++] = xi + 1 + (zi + 1) * resolution;  // 6
+
+                    w[i++] = xi + 1 + (zi + 0) * resolution;  // 1
+                    w[i++] = xi + 2 + (zi + 0) * resolution;  // 2 (2nd top triangle)
+                    w[i++] = xi + 1 + (zi + 1) * resolution;  // 6
+                }
+                if (reduce_left && (xi == 0)) {
+                    w[i++] = xi + 0 + (zi + 0) * resolution;  // 0
+                    w[i++] = xi + 1 + (zi + 1) * resolution;  // 6 (left triangle)
+                    w[i++] = xi + 0 + (zi + 2) * resolution;  // a
+                } else {
+                    w[i++] = xi + 0 + (zi + 0) * resolution;  // 0
+                    w[i++] = xi + 1 + (zi + 1) * resolution;  // 6 (1st left triangle)
+                    w[i++] = xi + 0 + (zi + 1) * resolution;  // 5
+
+                    w[i++] = xi + 0 + (zi + 1) * resolution;  // 5
+                    w[i++] = xi + 1 + (zi + 1) * resolution;  // 6 (2nd left triangle)
+                    w[i++] = xi + 0 + (zi + 2) * resolution;  // a
+                }
+                if (reduce_right && (xi == resolution - 3)) {
+                    w[i++] = xi + 2 + (zi + 0) * resolution;  // 2
+                    w[i++] = xi + 2 + (zi + 2) * resolution;  // c (right triangle)
+                    w[i++] = xi + 1 + (zi + 1) * resolution;  // 6
+                } else {
+                    w[i++] = xi + 2 + (zi + 0) * resolution;  // 2
+                    w[i++] = xi + 2 + (zi + 1) * resolution;  // 7 (1st right triangle)
+                    w[i++] = xi + 1 + (zi + 1) * resolution;  // 6
+
+                    w[i++] = xi + 1 + (zi + 1) * resolution;  // 6
+                    w[i++] = xi + 2 + (zi + 1) * resolution;  // 7 (2st right triangle)
+                    w[i++] = xi + 2 + (zi + 2) * resolution;  // c
+
+                }
+                if (reduce_bottom && (zi == resolution - 3)) {
+                    w[i++] = xi + 1 + (zi + 1) * resolution;  // 6
+                    w[i++] = xi + 2 + (zi + 2) * resolution;  // c (bottom triangle)
+                    w[i++] = xi + 0 + (zi + 2) * resolution;  // a
+                } else {
+                    w[i++] = xi + 1 + (zi + 1) * resolution;  // 6
+                    w[i++] = xi + 1 + (zi + 2) * resolution;  // b (1st bottom triangle)
+                    w[i++] = xi + 0 + (zi + 2) * resolution;  // a
+
+                    w[i++] = xi + 1 + (zi + 1) * resolution;  // 6
+                    w[i++] = xi + 2 + (zi + 2) * resolution;  // c (2st bottom triangle)
+                    w[i++] = xi + 1 + (zi + 2) * resolution;  // b
+                }
             }
         }
+        assert(indices_size == i);
     }
     Array arrays;
     arrays.resize(Mesh::ARRAY_MAX);

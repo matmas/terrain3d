@@ -24,7 +24,7 @@ public:
 
     void _init();
     void set_params(int seed, float frequency, int octaves, float lacunarity, float gain, float curve, float amplitude);
-    Array generate_arrays(int resolution, float chunk_size, Vector2 position);
+    Array generate_arrays(int resolution, float chunk_size, Vector2 position, bool reduce_top, bool reduce_bottom, bool reduce_left, bool reduce_right);
 };
 
 }
