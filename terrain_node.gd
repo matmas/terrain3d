@@ -20,31 +20,32 @@ func _init(parent, position: Vector3, size: float, resolution: int):
 
 
 func update(terrain):
-	if mesh_instance == null:
-		var terrain_generator = TerrainGenerator.new()
-		terrain_generator.set_params(terrain.noise_seed, terrain.frequency, terrain.octaves, terrain.lacunarity, terrain.gain, terrain.curve, terrain.amplitude)
-		var reduce_top = translation.z < 0;
-		var reduce_bottom = translation.z > 0;
-		var reduce_left = translation.x < 0;
-		var reduce_right = translation.x > 0;
-		var arrays = terrain_generator.generate_arrays(self.resolution, self.size, Vector2(self.position.x, self.position.z), reduce_top, reduce_bottom, reduce_left, reduce_right)
-		var mesh = ArrayMesh.new()
-		mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, arrays)
-		mesh.surface_set_material(0, preload("res://terrain.material"))
-		mesh_instance = MeshInstance.new()
-		mesh_instance.mesh = mesh
-		mesh_instance.cast_shadow = GeometryInstance.SHADOW_CASTING_SETTING_OFF
-		call_deferred("add_child", mesh_instance)
-
-	if _screen_space_vertex_error() > 10:
-		mesh_instance.visible = false
+	if _screen_space_vertex_error() < 10:
+		if mesh_instance == null:
+			var terrain_generator = TerrainGenerator.new()
+			terrain_generator.set_params(terrain.noise_seed, terrain.frequency, terrain.octaves, terrain.lacunarity, terrain.gain, terrain.curve, terrain.amplitude)
+			var reduce_top = translation.z < 0;
+			var reduce_bottom = translation.z > 0;
+			var reduce_left = translation.x < 0;
+			var reduce_right = translation.x > 0;
+			var arrays = terrain_generator.generate_arrays(self.resolution, self.size, Vector2(self.position.x, self.position.z), reduce_top, reduce_bottom, reduce_left, reduce_right)
+			var mesh = ArrayMesh.new()
+			mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, arrays)
+			mesh.surface_set_material(0, preload("res://terrain.material"))
+			mesh_instance = MeshInstance.new()
+			mesh_instance.mesh = mesh
+			mesh_instance.cast_shadow = GeometryInstance.SHADOW_CASTING_SETTING_OFF
+			call_deferred("add_child", mesh_instance)
+			for child in children:
+				child.queue_free()
+			children.clear()
+	else:
 		if children == []:
 			for i in [-1, 1]:
 				for j in [-1, 1]:
 					var child_offset = Vector3(i * size / 4, 0.0, j * size / 4)
 					var child_size = size / 2
 					var child = load("res://terrain_node.gd").new(self, self.position + child_offset, child_size, self.resolution)
-					call_deferred("add_child", child)
 					children.append(child)
 
 		var threads := []
@@ -56,6 +57,16 @@ func update(terrain):
 		for thread in threads:
 			thread.wait_to_finish()
 
+		if mesh_instance != null:
+			mesh_instance.queue_free()
+			mesh_instance = null
+		call_deferred("_add_children")
+
+
+func _add_children():
+	for child in children:
+		if not child.is_inside_tree():
+			add_child(child)
 
 
 func _screen_space_vertex_error():
