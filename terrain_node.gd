@@ -5,12 +5,12 @@ var position: Vector3
 var size: float
 var resolution: int
 
-var parent: TerrainNode
+var parent
 var children = []
 var mesh_instance: MeshInstance
 
 
-func _init(parent: TerrainNode, position: Vector3, size: float, resolution: int):
+func _init(parent, position: Vector3, size: float, resolution: int):
 	self.parent = parent
 	self.position = position
 	self.size = size
@@ -60,6 +60,8 @@ func update(terrain):
 
 func _screen_space_vertex_error():
 	var viewport = get_viewport()
+	if viewport == null:  # Happens at startup
+		return 0
 	var camera = viewport.get_camera()
 	var camera_position = camera.get_global_transform().origin
 	var geometric_error = self.size / (self.resolution - 1)
