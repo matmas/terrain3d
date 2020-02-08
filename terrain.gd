@@ -2,9 +2,7 @@ tool
 extends Spatial
 class_name Terrain
 
-const MAX_RESOLUTION = 257
 enum Resolution {
-	_2 = 2,
 	_3 = 3,
 	_5 = 5,
 	_9 = 9,
@@ -16,7 +14,7 @@ enum Resolution {
 	_513 = 513,
 }
 export(float) var size = 10000.0 setget _set_size
-export(Resolution) var resolution = Resolution._33 setget _set_resolution
+export(Resolution) var resolution = Resolution._129 setget _set_resolution
 export(float) var amplitude = 25.0 setget _set_amplitude
 export(float, EASE) var curve = 1 setget _set_curve
 export(int) var noise_seed = 0 setget _set_noise_seed
@@ -108,10 +106,7 @@ func _set_size(value):
 
 
 func _set_resolution(value):
-	if value <= 3:
-		resolution = clamp(value, 2, MAX_RESOLUTION)
-	else:
-		resolution = nearest_po2(value - 1) + 1
+	resolution = value
 	_set_refresh(true)
 
 

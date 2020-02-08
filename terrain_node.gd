@@ -36,20 +36,29 @@ func update(terrain):
 		mesh_instance.cast_shadow = GeometryInstance.SHADOW_CASTING_SETTING_OFF
 		call_deferred("add_child", mesh_instance)
 
-	if screen_space_vertex_error() > 10 and resolution < terrain.MAX_RESOLUTION:
+	if _screen_space_vertex_error() > 10:
 		mesh_instance.visible = false
 		if children == []:
 			for i in [-1, 1]:
 				for j in [-1, 1]:
 					var child_offset = Vector3(i * size / 4, 0.0, j * size / 4)
-					var child = load("res://terrain_node.gd").new(self, self.position + child_offset, size / 2, resolution)
-					children.append(child)
+					var child_size = size / 2
+					var child = load("res://terrain_node.gd").new(self, self.position + child_offset, child_size, self.resolution)
 					call_deferred("add_child", child)
+					children.append(child)
+
+		var threads := []
 		for child in children:
-			child.update(terrain)
+			var thread := Thread.new()
+			thread.start(child, "update", terrain)
+			threads.append(thread)
+
+		for thread in threads:
+			thread.wait_to_finish()
 
 
-func screen_space_vertex_error():
+
+func _screen_space_vertex_error():
 	var viewport = get_viewport()
 	var camera = viewport.get_camera()
 	var camera_position = camera.get_global_transform().origin
