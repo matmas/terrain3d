@@ -40,7 +40,7 @@ func update_tree_structure(max_screen_space_vertex_error):
 			child.update_tree_structure(max_screen_space_vertex_error)
 
 
-func get_nodes_to_update(additional_nodes):
+func _get_nodes_to_update(additional_nodes):
 	var nodes = []
 	if should_be_split:
 		if mesh_instance:
@@ -49,7 +49,7 @@ func get_nodes_to_update(additional_nodes):
 				additional_nodes[n] = true
 
 		for child in children:
-			nodes += child.get_nodes_to_update(additional_nodes)
+			nodes += child._get_nodes_to_update(additional_nodes)
 	else:
 		if mesh_instance:
 			pass  # keep it merged
@@ -63,9 +63,9 @@ func get_nodes_to_update(additional_nodes):
 	return nodes
 
 
-func get_all_nodes_to_update():
+func _get_all_nodes_to_update():
 	var additional_nodes = {}
-	var nodes_to_update = get_nodes_to_update(additional_nodes)
+	var nodes_to_update = _get_nodes_to_update(additional_nodes)
 	for node in additional_nodes:
 		if not nodes_to_update.has(node):
 			nodes_to_update.append(node)
@@ -73,8 +73,8 @@ func get_all_nodes_to_update():
 
 
 func update_nodes(terrain):
-	for node in get_all_nodes_to_update():
-		node.update(terrain)
+	for node in _get_all_nodes_to_update():
+		node._update(terrain)
 
 #if len(chunks_to_create) == OS.get_processor_count():
 #	_create_chunks(chunks, chunks_to_create)
@@ -87,7 +87,7 @@ func update_nodes(terrain):
 #    thread.wait_to_finish()
 
 
-func update(terrain):
+func _update(terrain):
 	if should_be_split:
 		if mesh_instance:  # split it
 			mesh_instance.queue_free()
@@ -101,13 +101,13 @@ func update(terrain):
 		if mesh_instance:  # merged already, just regenerate
 			mesh_instance.queue_free()
 			mesh_instance = null
-			generate_mesh_instance(terrain)
+			_generate_mesh_instance(terrain)
 		else:
 			# generate missing mesh_instance
-			generate_mesh_instance(terrain)
+			_generate_mesh_instance(terrain)
 
 
-func generate_mesh_instance(terrain):
+func _generate_mesh_instance(terrain):
 	var terrain_generator = TerrainGenerator.new()
 	terrain_generator.set_params(terrain.noise_seed, terrain.frequency, terrain.octaves, terrain.lacunarity, terrain.gain, terrain.curve, terrain.amplitude)
 	var arrays = terrain_generator.generate_arrays(self.resolution, self.size, Vector2(self.position.x, self.position.z),
