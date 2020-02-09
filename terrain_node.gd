@@ -62,6 +62,8 @@ func get_nodes_to_update(additional_nodes):
 					additional_nodes[n] = true
 			else:
 				nodes = [self]  # generate missing mesh_instance
+	if nodes:
+		print("...", nodes[0])
 	return nodes
 
 
