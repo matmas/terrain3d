@@ -47,8 +47,6 @@ func get_nodes_to_update(additional_nodes):
 			nodes = [self]  # split it
 			for n in _get_all_smaller_neighbors():
 				additional_nodes[n] = true
-		else:
-			pass  # keep it split
 
 		for child in children:
 			nodes += child.get_nodes_to_update(additional_nodes)
@@ -62,8 +60,6 @@ func get_nodes_to_update(additional_nodes):
 					additional_nodes[n] = true
 			else:
 				nodes = [self]  # generate missing mesh_instance
-	if nodes:
-		print("...", nodes[0])
 	return nodes
 
 
@@ -93,24 +89,22 @@ func update_nodes(terrain):
 
 func update(terrain):
 	if should_be_split:
-		if mesh_instance:
-			mesh_instance.queue_free()  # split it
+		if mesh_instance:  # split it
+			mesh_instance.queue_free()
 			mesh_instance = null
-		else:
-			pass  # keep it split
 	else:
-		if mesh_instance:  # keep it merged
+		if children:  # merge children
+			for child in self.children:
+				child.queue_free()
+			self.children.clear()
+
+		if mesh_instance:  # merged already, just regenerate
 			mesh_instance.queue_free()
 			mesh_instance = null
 			generate_mesh_instance(terrain)
 		else:
-			if children:  # merge children
-				for child in self.children:
-					child.queue_free()
-				self.children.clear()
-			else:
-				# generate missing mesh_instance
-				generate_mesh_instance(terrain)
+			# generate missing mesh_instance
+			generate_mesh_instance(terrain)
 
 
 func generate_mesh_instance(terrain):
@@ -121,13 +115,17 @@ func generate_mesh_instance(terrain):
 		_should_reduce(Direction.S),
 		_should_reduce(Direction.W),
 		_should_reduce(Direction.E))
+	call_deferred("_create_mesh", arrays)
+
+
+func _create_mesh(arrays):
 	var mesh = ArrayMesh.new()
 	mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, arrays)
 	mesh.surface_set_material(0, preload("res://terrain.material"))
 	self.mesh_instance = MeshInstance.new()
 	self.mesh_instance.mesh = mesh
 	self.mesh_instance.cast_shadow = GeometryInstance.SHADOW_CASTING_SETTING_OFF
-	call_deferred("add_child", self.mesh_instance)
+	add_child(mesh_instance)
 
 
 func _should_reduce(direction):
