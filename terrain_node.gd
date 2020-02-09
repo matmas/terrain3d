@@ -43,23 +43,19 @@ func update_tree_structure(max_screen_space_vertex_error):
 func _get_nodes_to_update(additional_nodes):
 	var nodes = []
 	if should_be_split:
-		if mesh_instance:
-			nodes = [self]  # split it
+		if mesh_instance:  # unsplit -> split
+			nodes = [self]
 			for n in _get_all_smaller_neighbors():
 				additional_nodes[n] = true
 
 		for child in children:
 			nodes += child._get_nodes_to_update(additional_nodes)
 	else:
-		if mesh_instance:
-			pass  # keep it merged
-		else:
-			if children:
-				nodes = [self]  # merge children
+		if not mesh_instance:  # missing mesh
+			nodes = [self]
+			if children:  # split -> unsplit
 				for n in _get_all_smaller_neighbors():
 					additional_nodes[n] = true
-			else:
-				nodes = [self]  # generate missing mesh_instance
 	return nodes
 
 
