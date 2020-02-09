@@ -65,8 +65,8 @@ func _observer_thread(_userdata):
 			root = _get_new_root()
 			call_deferred("add_child", root)
 
-		root.update_structure(max_screen_space_vertex_error)
-		root.update_mesh(self)
+		root.update_tree_structure(max_screen_space_vertex_error)
+		root.update_nodes(self)
 
 
 func _exit_tree():

@@ -13,6 +13,7 @@ var mesh_instance: MeshInstance
 
 enum Child { NW, NE, SW, SE }
 enum Direction { N, S, W, E }
+const Direction_ALL = [Direction.N, Direction.S, Direction.W, Direction.E]
 
 
 func _init(parent, position: Vector3, size: float, resolution: int):
@@ -24,7 +25,7 @@ func _init(parent, position: Vector3, size: float, resolution: int):
 	self.translation = position - parent_position
 
 
-func update_structure(max_screen_space_vertex_error):
+func update_tree_structure(max_screen_space_vertex_error):
 	should_be_split = (_screen_space_vertex_error() > max_screen_space_vertex_error)
 	if should_be_split:
 		if children == []:
@@ -36,84 +37,169 @@ func update_structure(max_screen_space_vertex_error):
 					children.append(child)
 					call_deferred("add_child", child)
 		for child in children:
-			child.update_structure(max_screen_space_vertex_error)
+			child.update_tree_structure(max_screen_space_vertex_error)
 
 
-func update_mesh(terrain):
+func get_nodes_to_update(additional_nodes):
+	var nodes = []
 	if should_be_split:
-		var threads := []
-		for child in children:
-			var thread := Thread.new()
-			thread.start(child, "update_mesh", terrain)
-			threads.append(thread)
-		for thread in threads:
-			thread.wait_to_finish()
+		if mesh_instance:
+			nodes = [self]  # split it
+			for n in _get_all_smaller_neighbors():
+				additional_nodes[n] = true
+		else:
+			pass  # keep it split
 
-		if mesh_instance != null:
+		for child in children:
+			nodes += child.get_nodes_to_update(additional_nodes)
+	else:
+		if mesh_instance:
+			pass  # keep it merged
+		else:
+			if children:
+				nodes = [self]  # merge children
+				for n in _get_all_smaller_neighbors():
+					additional_nodes[n] = true
+			else:
+				nodes = [self]  # generate missing mesh_instance
+	return nodes
+
+
+func get_all_nodes_to_update():
+	var additional_nodes = {}
+	var nodes_to_update = get_nodes_to_update(additional_nodes)
+	for node in additional_nodes:
+		if not nodes_to_update.has(node):
+			nodes_to_update.append(node)
+	return nodes_to_update
+
+
+func update_nodes(terrain):
+	for node in get_all_nodes_to_update():
+		node.update(terrain)
+
+
+func update(terrain):
+	if should_be_split:
+		if mesh_instance:
+			mesh_instance.queue_free()  # split it
+			mesh_instance = null
+		else:
+			pass  # keep it split
+	else:
+		if mesh_instance:  # keep it merged
 			mesh_instance.queue_free()
 			mesh_instance = null
-	else:
-		if mesh_instance == null:
-			var terrain_generator = TerrainGenerator.new()
-			terrain_generator.set_params(terrain.noise_seed, terrain.frequency, terrain.octaves, terrain.lacunarity, terrain.gain, terrain.curve, terrain.amplitude)
-			var arrays = terrain_generator.generate_arrays(self.resolution, self.size, Vector2(self.position.x, self.position.z),
-				_should_reduce(Direction.N),
-				_should_reduce(Direction.S),
-				_should_reduce(Direction.W),
-				_should_reduce(Direction.E))
-			var mesh = ArrayMesh.new()
-			mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, arrays)
-			mesh.surface_set_material(0, preload("res://terrain.material"))
-			mesh_instance = MeshInstance.new()
-			mesh_instance.mesh = mesh
-			mesh_instance.cast_shadow = GeometryInstance.SHADOW_CASTING_SETTING_OFF
-			call_deferred("add_child", mesh_instance)
-			for child in children:
-				child.queue_free()
-			children.clear()
+			generate_mesh_instance(terrain)
+		else:
+			if children:  # merge children
+				for child in self.children:
+					child.queue_free()
+				self.children.clear()
+			else:
+				# generate missing mesh_instance
+				generate_mesh_instance(terrain)
+
+
+func generate_mesh_instance(terrain):
+	var terrain_generator = TerrainGenerator.new()
+	terrain_generator.set_params(terrain.noise_seed, terrain.frequency, terrain.octaves, terrain.lacunarity, terrain.gain, terrain.curve, terrain.amplitude)
+	var arrays = terrain_generator.generate_arrays(self.resolution, self.size, Vector2(self.position.x, self.position.z),
+		_should_reduce(Direction.N),
+		_should_reduce(Direction.S),
+		_should_reduce(Direction.W),
+		_should_reduce(Direction.E))
+	var mesh = ArrayMesh.new()
+	mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, arrays)
+	mesh.surface_set_material(0, preload("res://terrain.material"))
+	self.mesh_instance = MeshInstance.new()
+	self.mesh_instance.mesh = mesh
+	self.mesh_instance.cast_shadow = GeometryInstance.SHADOW_CASTING_SETTING_OFF
+	call_deferred("add_child", self.mesh_instance)
 
 
 func _should_reduce(direction):
-	var neighbor = _get_neighbor(direction)
+	var neighbor = _get_neighbor_of_greater_or_equal_size(direction)
 	if not neighbor:
 		return false
 	return self.size < neighbor.size
 
 
-func _get_neighbor(direction):
+func _get_neighbor_of_greater_or_equal_size(direction):
 	if not parent:
 		return null
 	if direction == Direction.N:
-		if parent.children[Child.SE] == self:
-			return parent.children[Child.NE]
-		if parent.children[Child.SW] == self:
-			return parent.children[Child.NW]
+		if parent._children()[Child.SE] == self:
+			return parent._children()[Child.NE]
+		if parent._children()[Child.SW] == self:
+			return parent._children()[Child.NW]
 	if direction == Direction.S:
-		if parent.children[Child.NE] == self:
-			return parent.children[Child.SE]
-		if parent.children[Child.NW] == self:
-			return parent.children[Child.SW]
+		if parent._children()[Child.NE] == self:
+			return parent._children()[Child.SE]
+		if parent._children()[Child.NW] == self:
+			return parent._children()[Child.SW]
 	if direction == Direction.W:
-		if parent.children[Child.NE] == self:
-			return parent.children[Child.NW]
-		if parent.children[Child.SE] == self:
-			return parent.children[Child.SW]
+		if parent._children()[Child.NE] == self:
+			return parent._children()[Child.NW]
+		if parent._children()[Child.SE] == self:
+			return parent._children()[Child.SW]
 	if direction == Direction.E:
-		if parent.children[Child.NW] == self:
-			return parent.children[Child.NE]
-		if parent.children[Child.SW] == self:
-			return parent.children[Child.SE]
-	var node = self.parent._get_neighbor(direction)
-	if not node or not node.children:
+		if parent._children()[Child.NW] == self:
+			return parent._children()[Child.NE]
+		if parent._children()[Child.SW] == self:
+			return parent._children()[Child.SE]
+	var node = self.parent._get_neighbor_of_greater_or_equal_size(direction)
+	if not node or not node._children():
 		return node
 	if direction == Direction.N:
-		return node.children[Child.SW] if parent.children[Child.NW] == self else node.children[Child.SE]
+		return node._children()[Child.SW] if parent._children()[Child.NW] == self else node._children()[Child.SE]
 	if direction == Direction.S:
-		return node.children[Child.NW] if parent.children[Child.SW] == self else node.children[Child.NE]
+		return node._children()[Child.NW] if parent._children()[Child.SW] == self else node._children()[Child.NE]
 	if direction == Direction.W:
-		return node.children[Child.NE] if parent.children[Child.NW] == self else node.children[Child.SE]
+		return node._children()[Child.NE] if parent._children()[Child.NW] == self else node._children()[Child.SE]
 	if direction == Direction.E:
-		return node.children[Child.NW] if parent.children[Child.NE] == self else node.children[Child.SW]
+		return node._children()[Child.NW] if parent._children()[Child.NE] == self else node._children()[Child.SW]
+
+
+func _find_neighbors_of_smaller_size(neighbor, direction):
+	var candidates = [] if neighbor == null else [neighbor]
+	var neighbors = []
+	while len(candidates) > 0:
+		if candidates[0]._children() == []:
+			neighbors.append(candidates[0])
+		else:
+			if direction == Direction.N:
+				candidates.append(candidates[0]._children()[Child.SW])
+				candidates.append(candidates[0]._children()[Child.SE])
+			if direction == Direction.S:
+				candidates.append(candidates[0]._children()[Child.NW])
+				candidates.append(candidates[0]._children()[Child.NE])
+			if direction == Direction.W:
+				candidates.append(candidates[0]._children()[Child.NE])
+				candidates.append(candidates[0]._children()[Child.SE])
+			if direction == Direction.E:
+				candidates.append(candidates[0]._children()[Child.NW])
+				candidates.append(candidates[0]._children()[Child.SW])
+		candidates.remove(0)
+	return neighbors
+
+
+func _get_neighbors(direction):
+  var neighbor = _get_neighbor_of_greater_or_equal_size(direction)
+  return _find_neighbors_of_smaller_size(neighbor, direction)
+
+
+func _get_all_smaller_neighbors():
+	var smaller_neighbors = []
+	for direction in Direction_ALL:
+		var neighbors = _get_neighbors(direction)
+		if len(neighbors) > 1:
+			smaller_neighbors += neighbors
+	return smaller_neighbors
+
+
+func _children():  # Omits children to be deleted soon
+	return children if should_be_split else []
 
 
 func _screen_space_vertex_error():
