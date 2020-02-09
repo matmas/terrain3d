@@ -80,6 +80,16 @@ func update_nodes(terrain):
 	for node in get_all_nodes_to_update():
 		node.update(terrain)
 
+#if len(chunks_to_create) == OS.get_processor_count():
+#	_create_chunks(chunks, chunks_to_create)
+#var threads := []
+#for child in children:
+#    var thread := Thread.new()
+#    thread.start(child, "update_mesh", terrain)
+#    threads.append(thread)
+#for thread in threads:
+#    thread.wait_to_finish()
+
 
 func update(terrain):
 	if should_be_split:
