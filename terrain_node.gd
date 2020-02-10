@@ -208,3 +208,60 @@ func _screen_space_vertex_error():
 	var perspective_scaling_factor = viewport_width / (2.0 * tan(deg2rad(camera.fov) / 2.0))
 	var distance = clamp(camera_position.distance_to(self.position) - self.size, 0.001, 10000)
 	return geometric_error * perspective_scaling_factor / distance
+
+
+# We need to refresh smaller neighbors of the node being split as they are dependent (.)
+#
+#	+---------------------+ +---------+
+#	|                     | |         |
+#	|                     | |         |
+#	|                     | |         |
+#	|                     | |.        |
+#	|                     | |         |
+#	|                     | |         |
+#	|                     | |         |
+#	|                     | |         |
+#	|                     | +---------+
+#	|                     | +---------+      +---+ +---+
+#	|                     | |         |      |   | |   |
+#	|                     | |         |      |   | |   |
+#	|                     | |         |      |   | |   |
+#	|                     | |.        |      +---+ +---+
+#	|                     | |         | +--> +---+ +---+
+#	|                     | |         |      |   | |   |
+#	|                     | |         |      |   | |   |
+#	|                     | |         |      |   | |   |
+#	+---------------------+ +---------+      +---+ +---+
+#	                        +---+ +---+      +---+ +---+
+#	                        | . | | . |      |   | |   |
+#	                        |   | |   |      |   | |   |
+#	                        |   | |   |      |   | |   |
+#	                        +---+ +---+      +---+ +---+
+#
+# We also need to refresh smaller neighbors of the node being merged as they are also dependent (.)
+#
+#	+---------------------+ +---------+
+#	|                     | |         |
+#	|                     | |         |
+#	|                     | |         |
+#	|                     | |.        |
+#	|                     | |         |
+#	|                     | |         |
+#	|                     | |         |
+#	|                     | |         |
+#	|                     | +---------+
+#	|                     | +---+ +---+      +---------+
+#	|                     | | . | | . |      |         |
+#	|                     | |.  | |   |      |         |
+#	|                     | |   | |   |      |         |
+#	|                     | +---+ +---+      |         |
+#	|                     | +---+ +---+ +--> |         |
+#	|                     | |   | |   |      |         |
+#	|                     | |.  | |   |      |         |
+#	|                     | |   | |   |      |         |
+#	+---------------------+ +---+ +---+      +---------+
+#	                        +---+ +---+      +---+ +---+
+#	                        |   | |   |      | . | | . |
+#	                        |   | |   |      |   | |   |
+#	                        |   | |   |      |   | |   |
+#	                        +---+ +---+      +---+ +---+
