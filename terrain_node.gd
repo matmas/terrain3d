@@ -30,7 +30,11 @@ func _init(parent, terrain, position: Vector3, size: float, resolution: int):
 func update(max_screen_space_vertex_error):
 	_create_children(max_screen_space_vertex_error)
 	var nodes_to_refresh = {}
-	_split_or_merge_children(nodes_to_refresh)
+	var nodes_refreshed = _split_or_merge_children(nodes_to_refresh)
+	for n in nodes_refreshed:
+		if nodes_to_refresh.has(n):
+			nodes_to_refresh.erase(n)
+
 	for node in nodes_to_refresh:
 		node._refresh_mesh()
 
@@ -51,6 +55,8 @@ func _create_children(max_screen_space_vertex_error):
 
 
 func _split_or_merge_children(nodes_to_refresh):
+	var nodes_refreshed = []
+
 	if should_be_split:
 		var threads := []
 		for child in children:
@@ -59,7 +65,7 @@ func _split_or_merge_children(nodes_to_refresh):
 			threads.append(thread)
 			for thread in threads:
 				if thread.is_active():
-					thread.wait_to_finish()
+					nodes_refreshed += thread.wait_to_finish()
 		if mesh_instance:
 			mesh_instance.queue_free()
 			mesh_instance = null
@@ -68,12 +74,14 @@ func _split_or_merge_children(nodes_to_refresh):
 	else:
 		if not mesh_instance:
 			_generate_mesh()
+			nodes_refreshed.append(self)
 			if children:
 				for child in children:
 					child.queue_free()
 				children.clear()
 				for n in _get_all_smaller_neighbors():
 					nodes_to_refresh[n] = true
+	return nodes_refreshed
 
 
 func _refresh_mesh():
