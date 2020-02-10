@@ -27,7 +27,15 @@ func _init(parent, terrain, position: Vector3, size: float, resolution: int):
 	self.translation = position - parent_position
 
 
-func update_tree_structure(max_screen_space_vertex_error):
+func update(max_screen_space_vertex_error):
+	_create_children(max_screen_space_vertex_error)
+	var nodes_to_refresh = {}
+	_split_or_merge_children(nodes_to_refresh)
+	for node in nodes_to_refresh:
+		node._refresh_mesh()
+
+
+func _create_children(max_screen_space_vertex_error):
 	should_be_split = (_screen_space_vertex_error() > max_screen_space_vertex_error)
 	if should_be_split:
 		if children == []:
@@ -39,15 +47,15 @@ func update_tree_structure(max_screen_space_vertex_error):
 					children.append(child)
 					call_deferred("add_child", child)
 		for child in children:
-			child.update_tree_structure(max_screen_space_vertex_error)
+			child._create_children(max_screen_space_vertex_error)
 
 
-func _split_and_merge_children(nodes_to_refresh):
+func _split_or_merge_children(nodes_to_refresh):
 	if should_be_split:
 		var threads := []
 		for child in children:
 			var thread := Thread.new()
-			thread.start(child, "_split_and_merge_children", nodes_to_refresh)
+			thread.start(child, "_split_or_merge_children", nodes_to_refresh)
 			threads.append(thread)
 			for thread in threads:
 				if thread.is_active():
@@ -66,13 +74,6 @@ func _split_and_merge_children(nodes_to_refresh):
 				children.clear()
 				for n in _get_all_smaller_neighbors():
 					nodes_to_refresh[n] = true
-
-
-func update_nodes():
-	var nodes_to_refresh = {}
-	_split_and_merge_children(nodes_to_refresh)
-	for node in nodes_to_refresh:
-		node._refresh_mesh()
 
 
 func _refresh_mesh():
