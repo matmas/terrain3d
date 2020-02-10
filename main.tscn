@@ -15,8 +15,6 @@ func _process(_delta):
 
 [node name="Terrain" type="Spatial" parent="."]
 script = ExtResource( 2 )
-max_screen_space_vertex_error = 1e+07
-resolution = 17
 amplitude = 100.0
 curve = -0.25
 lacunarity = 4.0

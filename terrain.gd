@@ -34,7 +34,7 @@ var root: TerrainNode
 
 
 func _get_new_root():
-	return TerrainNode.new(null, Vector3.ZERO, self.size, self.resolution)
+	return TerrainNode.new(null, self, Vector3.ZERO, self.size, self.resolution)
 
 
 func _ready():
@@ -66,7 +66,7 @@ func _observer_thread(_userdata):
 			call_deferred("add_child", root)
 
 		root.update_tree_structure(max_screen_space_vertex_error)
-		root.update_nodes(self)
+		root.update_nodes()
 
 
 func _exit_tree():

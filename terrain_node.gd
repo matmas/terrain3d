@@ -6,6 +6,7 @@ var size: float
 var resolution: int
 
 var parent
+var terrain
 var should_be_split = false
 var children = []
 var mesh_instance: MeshInstance
@@ -16,8 +17,9 @@ enum Direction { N, S, W, E }
 const Direction_ALL = [Direction.N, Direction.S, Direction.W, Direction.E]
 
 
-func _init(parent, position: Vector3, size: float, resolution: int):
+func _init(parent, terrain, position: Vector3, size: float, resolution: int):
 	self.parent = parent
+	self.terrain = terrain
 	self.position = position
 	self.size = size
 	self.resolution = resolution
@@ -33,77 +35,55 @@ func update_tree_structure(max_screen_space_vertex_error):
 				for xi in range(2):
 					var child_offset = Vector3((xi * 2 - 1) * size / 4, 0.0, (zi * 2 - 1) * size / 4)
 					var child_size = size / 2
-					var child = load("res://terrain_node.gd").new(self, self.position + child_offset, child_size, self.resolution)
+					var child = load("res://terrain_node.gd").new(self, self.terrain, self.position + child_offset, child_size, self.resolution)
 					children.append(child)
 					call_deferred("add_child", child)
 		for child in children:
 			child.update_tree_structure(max_screen_space_vertex_error)
 
 
-func _get_nodes_to_update(additional_nodes):
-	var nodes = []
+func _split_and_merge_children(nodes_to_refresh):
 	if should_be_split:
-		if mesh_instance:  # unsplit -> split
-			nodes = [self]
-			for n in _get_all_smaller_neighbors():
-				additional_nodes[n] = true
-
+		var threads := []
 		for child in children:
-			nodes += child._get_nodes_to_update(additional_nodes)
+			var thread := Thread.new()
+			thread.start(child, "_split_and_merge_children", nodes_to_refresh)
+			threads.append(thread)
+			for thread in threads:
+				if thread.is_active():
+					thread.wait_to_finish()
+		if mesh_instance:
+			mesh_instance.queue_free()
+			mesh_instance = null
+			for n in _get_all_smaller_neighbors():
+				nodes_to_refresh[n] = true
 	else:
-		if not mesh_instance:  # missing mesh
-			nodes = [self]
-			if children:  # split -> unsplit
+		if not mesh_instance:
+			_generate_mesh()
+			if children:
+				for child in children:
+					child.queue_free()
+				children.clear()
 				for n in _get_all_smaller_neighbors():
-					additional_nodes[n] = true
-	return nodes
+					nodes_to_refresh[n] = true
 
 
-func _get_all_nodes_to_update():
-	var additional_nodes = {}
-	var nodes_to_update = _get_nodes_to_update(additional_nodes)
-	for node in additional_nodes:
-		if not nodes_to_update.has(node):
-			nodes_to_update.append(node)
-	return nodes_to_update
+func update_nodes():
+	var nodes_to_refresh = {}
+	_split_and_merge_children(nodes_to_refresh)
+	for node in nodes_to_refresh:
+		node._refresh_mesh()
 
 
-func update_nodes(terrain):
-	for node in _get_all_nodes_to_update():
-		node._update(terrain)
-
-#if len(chunks_to_create) == OS.get_processor_count():
-#	_create_chunks(chunks, chunks_to_create)
-#var threads := []
-#for child in children:
-#    var thread := Thread.new()
-#    thread.start(child, "update_mesh", terrain)
-#    threads.append(thread)
-#for thread in threads:
-#    thread.wait_to_finish()
+func _refresh_mesh():
+	assert(mesh_instance)
+	var old_mesh_instance = mesh_instance
+	assert(not children)
+	_generate_mesh()
+	old_mesh_instance.queue_free()
 
 
-func _update(terrain):
-	if should_be_split:
-		if mesh_instance:  # split it
-			mesh_instance.queue_free()
-			mesh_instance = null
-	else:
-		if children:  # merge children
-			for child in self.children:
-				child.queue_free()
-			self.children.clear()
-
-		if mesh_instance:  # merged already, just regenerate
-			mesh_instance.queue_free()
-			mesh_instance = null
-			_generate_mesh_instance(terrain)
-		else:
-			# generate missing mesh_instance
-			_generate_mesh_instance(terrain)
-
-
-func _generate_mesh_instance(terrain):
+func _generate_mesh():
 	var terrain_generator = TerrainGenerator.new()
 	terrain_generator.set_params(terrain.noise_seed, terrain.frequency, terrain.octaves, terrain.lacunarity, terrain.gain, terrain.curve, terrain.amplitude)
 	var arrays = terrain_generator.generate_arrays(self.resolution, self.size, Vector2(self.position.x, self.position.z),
@@ -111,10 +91,10 @@ func _generate_mesh_instance(terrain):
 		_should_reduce(Direction.S),
 		_should_reduce(Direction.W),
 		_should_reduce(Direction.E))
-	call_deferred("_create_mesh", arrays)
+	call_deferred("_add_mesh", arrays)
 
 
-func _create_mesh(arrays):
+func _add_mesh(arrays):
 	var mesh = ArrayMesh.new()
 	mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, arrays)
 	mesh.surface_set_material(0, preload("res://terrain.material"))
