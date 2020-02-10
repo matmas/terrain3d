@@ -40,8 +40,8 @@ float TerrainGenerator::_height(Vector2 point) {
 	return value;
 }
 
-Array TerrainGenerator::generate_arrays(int resolution, float chunk_size, Vector2 position, bool reduce_top, bool reduce_bottom, bool reduce_left, bool reduce_right) {
-    Array plane_mesh_arrays = get_plane_mesh_arrays(chunk_size, resolution, reduce_top, reduce_bottom, reduce_left, reduce_right);
+Array TerrainGenerator::generate_arrays(int resolution, float chunk_size, Vector2 position, int lod_n, int lod_s, int lod_w, int lod_e) {
+    Array plane_mesh_arrays = get_plane_mesh_arrays(chunk_size, resolution, lod_n, lod_s, lod_w, lod_e);
     PoolVector3Array vertices = plane_mesh_arrays[Mesh::ARRAY_VERTEX];
     PoolVector3Array normals;
     normals.resize(resolution * resolution);

@@ -96,10 +96,7 @@ func _generate_mesh():
 	var terrain_generator = TerrainGenerator.new()
 	terrain_generator.set_params(terrain.noise_seed, terrain.frequency, terrain.octaves, terrain.lacunarity, terrain.gain, terrain.curve, terrain.amplitude)
 	var arrays = terrain_generator.generate_arrays(self.resolution, self.size, Vector2(self.position.x, self.position.z),
-		_should_reduce(Direction.N),
-		_should_reduce(Direction.S),
-		_should_reduce(Direction.W),
-		_should_reduce(Direction.E))
+		_lod(Direction.N), _lod(Direction.S), _lod(Direction.W), _lod(Direction.E))
 	call_deferred("_add_mesh", arrays)
 
 
@@ -113,11 +110,14 @@ func _add_mesh(arrays):
 	add_child(mesh_instance)
 
 
-func _should_reduce(direction):
+func _lod(direction):
 	var neighbor = _get_neighbor_of_greater_or_equal_size(direction)
 	if not neighbor:
-		return false
-	return self.size < neighbor.size
+		return 0
+	if self.size >= neighbor.size:
+		return 0
+	var size_ratio = int(neighbor.size / self.size)
+	return size_ratio / 2
 
 
 func _get_neighbor_of_greater_or_equal_size(direction):
