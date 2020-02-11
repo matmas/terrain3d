@@ -12,14 +12,14 @@ _global_script_classes=[ {
 "base": "Reference",
 "class": "BinarySemaphore",
 "language": "GDScript",
-"path": "res://binary_semaphore.gd"
+"path": "res://terrain/binary_semaphore.gd"
 }, {
 "base": "Spatial",
 "class": "Terrain",
 "language": "GDScript",
-"path": "res://terrain.gd"
+"path": "res://terrain/terrain.gd"
 }, {
-"base": "Reference",
+"base": "",
 "class": "TerrainGenerator",
 "language": "NativeScript",
 "path": "res://gdnative/terrain_generator.gdns"
@@ -27,7 +27,7 @@ _global_script_classes=[ {
 "base": "Spatial",
 "class": "TerrainNode",
 "language": "GDScript",
-"path": "res://terrain_node.gd"
+"path": "res://terrain/terrain_node.gd"
 } ]
 _global_script_class_icons={
 "BinarySemaphore": "",

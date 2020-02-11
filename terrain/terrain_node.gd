@@ -47,7 +47,7 @@ func _create_children(max_screen_space_vertex_error):
 				for xi in range(2):
 					var child_offset = Vector3((xi * 2 - 1) * size / 4, 0.0, (zi * 2 - 1) * size / 4)
 					var child_size = size / 2
-					var child = load("res://terrain_node.gd").new(self, self.terrain, self.position + child_offset, child_size, self.resolution)
+					var child = load("res://terrain/terrain_node.gd").new(self, self.terrain, self.position + child_offset, child_size, self.resolution)
 					children.append(child)
 					call_deferred("add_child", child)
 		for child in children:
@@ -105,7 +105,7 @@ func _generate_mesh():
 func _add_mesh(arrays):
 	var mesh = ArrayMesh.new()
 	mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, arrays)
-	mesh.surface_set_material(0, preload("res://terrain.material"))
+	mesh.surface_set_material(0, preload("res://terrain/terrain.material"))
 	self.mesh_instance = MeshInstance.new()
 	self.mesh_instance.mesh = mesh
 	self.mesh_instance.cast_shadow = GeometryInstance.SHADOW_CASTING_SETTING_OFF
