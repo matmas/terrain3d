@@ -15,8 +15,10 @@ func _process(_delta):
 
 [node name="Terrain" type="Spatial" parent="."]
 script = ExtResource( 2 )
-max_screen_space_vertex_error = 1e+06
-amplitude = 100.0
+__meta__ = {
+"_edit_lock_": true
+}
+max_screen_space_vertex_error = 100000.0
 curve = -0.25
 lacunarity = 4.0
 
@@ -31,7 +33,7 @@ __meta__ = {
 }
 
 [node name="Player" parent="." instance=ExtResource( 1 )]
-transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -1374.23, 25, -50.9307 )
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 68.3067, 0 )
 
 [node name="DirectionalLight" type="DirectionalLight" parent="."]
 transform = Transform( 1, 0, 0, 0, -0.648466, 0.761244, 0, -0.761244, -0.648466, 0, 100, 0 )

@@ -8,6 +8,7 @@ using namespace godot;
 void TerrainGenerator::_register_methods() {
     register_method("set_params", &TerrainGenerator::set_params);
     register_method("generate_arrays", &TerrainGenerator::generate_arrays);
+    register_method("arrays_to_mapdata", &TerrainGenerator::arrays_to_mapdata);
 }
 
 TerrainGenerator::TerrainGenerator() {
@@ -67,4 +68,19 @@ Array TerrainGenerator::generate_arrays(int resolution, float chunk_size, Vector
     arrays[Mesh::ARRAY_TEX_UV] = plane_mesh_arrays[Mesh::ARRAY_TEX_UV];
     arrays[Mesh::ARRAY_INDEX] = plane_mesh_arrays[Mesh::ARRAY_INDEX];
     return arrays;
+}
+
+PoolRealArray TerrainGenerator::arrays_to_mapdata(Array arrays) {
+    PoolVector3Array vertices = arrays[Mesh::ARRAY_VERTEX];
+
+    PoolRealArray array;
+    array.resize(vertices.size());
+    {
+        auto r = vertices.read();
+        auto w = array.write();
+        for (int i = 0; i < vertices.size(); i++) {
+            w[i] = r[i].y;
+        }
+    }
+    return array;
 }
