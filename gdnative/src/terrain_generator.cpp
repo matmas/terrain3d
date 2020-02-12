@@ -1,20 +1,18 @@
 #include "terrain_generator.hpp"
-#include "FastNoise.h"
-#include "ArrayMesh.hpp"
-#include "utils.hpp"
 #include <math.h>
+#include "ArrayMesh.hpp"
+#include "FastNoise.h"
+#include "utils.hpp"
 
 using namespace godot;
 
 void TerrainGenerator::_register_methods() {
-    register_method("set_params", &TerrainGenerator::set_params);
+    register_method("add_params", &TerrainGenerator::add_params);
     register_method("generate_arrays", &TerrainGenerator::generate_arrays);
     register_method("arrays_to_mapdata", &TerrainGenerator::arrays_to_mapdata);
 }
 
 TerrainGenerator::TerrainGenerator() {
-    noise.SetNoiseType(FastNoise::SimplexFractal);
-    noise.SetFractalType(FastNoise::FractalType::FBM);
 }
 
 TerrainGenerator::~TerrainGenerator() {
@@ -23,23 +21,32 @@ TerrainGenerator::~TerrainGenerator() {
 void TerrainGenerator::_init() {
 }
 
-void TerrainGenerator::set_params(int seed, float frequency, int octaves, float lacunarity, float gain, float curve, float amplitude) {
-    noise.SetSeed(seed);
-    noise.SetFrequency(frequency);
-    noise.SetFractalOctaves(octaves);
-    noise.SetFractalLacunarity(lacunarity);
-    noise.SetFractalGain(gain);
-    this->curve = curve;
-    this->amplitude = amplitude;
+void TerrainGenerator::add_params(int noise_type, int fractal_type, int interpolation, int seed, float frequency, int octaves, float lacunarity, float gain, float curve, float amplitude) {
+    NoiseLayer layer;
+    layer.noise.SetNoiseType(static_cast<FastNoise::NoiseType>(noise_type));
+    layer.noise.SetFractalType(static_cast<FastNoise::FractalType>(fractal_type));
+    layer.noise.SetInterp(static_cast<FastNoise::Interp>(interpolation));
+    layer.noise.SetSeed(seed);
+    layer.noise.SetFrequency(frequency);
+    layer.noise.SetFractalOctaves(octaves);
+    layer.noise.SetFractalLacunarity(lacunarity);
+    layer.noise.SetFractalGain(gain);
+    layer.curve = curve;
+    layer.amplitude = amplitude;
+    this->layers.push_back(layer);
 }
 
 float TerrainGenerator::_height(Vector2 point) {
-    float value = this->noise.GetNoise(point.x, point.y);  // from -1.0 to 1.0
-	value = (value + 1.0) * 0.5;  // from 0.0 to 1.0
-	value = ease(value, this->curve);
-	value = value * 2.0 - 1.0;  // from -1.0 to 1.0
-	value *= this->amplitude;
-	return value;
+    float height = 0.0;
+    for (auto layer : this->layers) {
+        float value = layer.noise.GetNoise(point.x, point.y);  // from -1.0 to 1.0
+        value = (value + 1.0) * 0.5;  // from 0.0 to 1.0
+        value = ease(value, layer.curve);
+        value = value * 2.0 - 1.0;  // from -1.0 to 1.0
+        value *= layer.amplitude;
+        height += value;
+    }
+	return height;
 }
 
 Array TerrainGenerator::generate_arrays(int resolution, float chunk_size, Vector2 position, int lod_n, int lod_s, int lod_w, int lod_e) {

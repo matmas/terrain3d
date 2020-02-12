@@ -6,7 +6,8 @@ var size: float
 var resolution: int
 
 var parent
-var terrain
+var terrain: Spatial
+var terrain_generator
 var should_be_split = false
 var children = []
 var mesh_instance: MeshInstance
@@ -14,11 +15,13 @@ var mesh_instance: MeshInstance
 enum Child { NW, NE, SW, SE }
 enum Direction { N, S, W, E }
 const Direction_ALL = [Direction.N, Direction.S, Direction.W, Direction.E]
+const USE_THREADS = true
 
 
-func _init(parent, terrain, position: Vector3, size: float, resolution: int):
+func _init(parent, terrain, terrain_generator, position: Vector3, size: float, resolution: int):
 	self.parent = parent
 	self.terrain = terrain
+	self.terrain_generator = terrain_generator
 	self.position = position
 	self.size = size
 	self.resolution = resolution
@@ -46,7 +49,7 @@ func _create_children():
 				for xi in range(2):
 					var child_offset = Vector3((xi * 2 - 1) * size / 4, 0.0, (zi * 2 - 1) * size / 4)
 					var child_size = size / 2
-					var child = load("res://terrain/terrain_node.gd").new(self, self.terrain, self.position + child_offset, child_size, self.resolution)
+					var child = load("res://terrain/terrain_node.gd").new(self, self.terrain, self.terrain_generator, self.position + child_offset, child_size, self.resolution)
 					children.append(child)
 					call_deferred("add_child", child)
 		for child in children:
@@ -59,12 +62,15 @@ func _split_or_merge_children(nodes_to_refresh):
 	if should_be_split:
 		var threads := []
 		for child in children:
-			var thread := Thread.new()
-			thread.start(child, "_split_or_merge_children", nodes_to_refresh)
-			threads.append(thread)
-			for thread in threads:
-				if thread.is_active():
-					nodes_refreshed += thread.wait_to_finish()
+			if USE_THREADS:
+				var thread := Thread.new()
+				thread.start(child, "_split_or_merge_children", nodes_to_refresh)
+				threads.append(thread)
+				for thread in threads:
+					if thread.is_active():
+						nodes_refreshed += thread.wait_to_finish()
+			else:
+				nodes_refreshed += _split_or_merge_children(nodes_to_refresh)
 		if mesh_instance:
 			mesh_instance.queue_free()
 			mesh_instance = null
@@ -92,8 +98,6 @@ func _refresh_mesh():
 
 
 func _generate_mesh():
-	var terrain_generator = TerrainGenerator.new()
-	terrain_generator.set_params(terrain.noise_seed, terrain.frequency, terrain.octaves, terrain.lacunarity, terrain.gain, terrain.curve, terrain.amplitude)
 	var arrays = terrain_generator.generate_arrays(self.resolution, self.size, Vector2(self.position.x, self.position.z),
 		_lod(Direction.N), _lod(Direction.S), _lod(Direction.W), _lod(Direction.E))
 	call_deferred("_add_mesh", arrays)

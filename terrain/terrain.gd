@@ -21,17 +21,10 @@ enum Ratio {
 	_16_to_1 = 16,
 	_32_to_1 = 32,
 }
-export(float) var max_screen_space_vertex_error = 10 setget _set_max_screen_space_vertex_error
+export(float) var max_screen_space_vertex_error = 100000.0 setget _set_max_screen_space_vertex_error
 export(float) var size = 10000.0 setget _set_size
 export(Resolution) var resolution = Resolution._129 setget _set_resolution
-export(Ratio) var mesh_to_physics_mesh_ratio = 1 setget _set_mesh_to_physics_mesh_ratio
-export(float) var amplitude = 25.0 setget _set_amplitude
-export(float, EASE) var curve = 1 setget _set_curve
-export(int) var noise_seed = 0 setget _set_noise_seed
-export(float, 0.00390625, 10.0) var frequency = 1.0 / 64 setget _set_frequency
-export(int, 1, 6) var octaves = 3 setget _set_octaves
-export(float, 0.1, 4.0) var lacunarity = 2.0 setget _set_lacunarity
-export(float, 0.0, 1.0) var gain = 0.164 setget _set_gain
+export(Ratio) var mesh_to_physics_mesh_ratio = 16 setget _set_mesh_to_physics_mesh_ratio
 
 var observer_thread := Thread.new()
 var semaphore := BinarySemaphore.new()
@@ -41,9 +34,16 @@ var should_refresh = false
 var should_refresh_mutex := Mutex.new()
 var root: TerrainNode
 
+const USE_THREADS = true
+
 
 func _get_new_root():
-	return TerrainNode.new(null, self, Vector3.ZERO, self.size, self.resolution)
+	var terrain_generator = TerrainGenerator.new()
+	for node in get_children():
+		var layer := node as NoiseLayer
+		if layer:
+			terrain_generator.add_params(layer.noise_type, layer.fractal_type, layer.interpolation, layer._seed, layer.frequency, layer.octaves, layer.lacunarity, layer.gain, layer.curve, layer.amplitude)
+	return TerrainNode.new(null, self, terrain_generator, Vector3.ZERO, self.size, self.resolution)
 
 
 func _ready():
@@ -59,7 +59,10 @@ func _ready():
 
 
 func _on_Timer_timeout():
-	semaphore.post()
+	if USE_THREADS:
+		semaphore.post()
+	else:
+		root.update()
 
 
 func _observer_thread(_userdata):
@@ -77,11 +80,18 @@ func _observer_thread(_userdata):
 		root.update()
 
 
+func refresh():
+	_set_refresh(true)
+
+
 func _exit_tree():
 	_set_exit(true)
 	semaphore.post()
 	if observer_thread.is_active():  # Avoid "Thread must exist to wait for its completion." error in editor output
 		observer_thread.wait_to_finish()
+
+
+# Getters and setters with mutexes:
 
 
 func _should_exit():
@@ -110,6 +120,9 @@ func _set_refresh(value):
 	should_refresh_mutex.unlock()
 
 
+# Setters of exported variables:
+
+
 func _set_max_screen_space_vertex_error(value):
 	max_screen_space_vertex_error = value
 	_set_refresh(true)
@@ -130,38 +143,3 @@ func _set_mesh_to_physics_mesh_ratio(value):
 	if (resolution - 1) / value > 2:
 		mesh_to_physics_mesh_ratio = value
 		_set_refresh(true)
-
-
-func _set_curve(value):
-	curve = value
-	_set_refresh(true)
-
-
-func _set_amplitude(value):
-	amplitude = value
-	_set_refresh(true)
-
-
-func _set_noise_seed(value):
-	noise_seed = value
-	_set_refresh(true)
-
-
-func _set_frequency(value):
-	frequency = value
-	_set_refresh(true)
-
-
-func _set_octaves(value):
-	octaves = value
-	_set_refresh(true)
-
-
-func _set_lacunarity(value):
-	lacunarity = value
-	_set_refresh(true)
-
-
-func _set_gain(value):
-	gain = value
-	_set_refresh(true)
