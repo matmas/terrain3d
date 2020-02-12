@@ -11,7 +11,6 @@ var should_be_split = false
 var children = []
 var mesh_instance: MeshInstance
 
-
 enum Child { NW, NE, SW, SE }
 enum Direction { N, S, W, E }
 const Direction_ALL = [Direction.N, Direction.S, Direction.W, Direction.E]
@@ -23,7 +22,7 @@ func _init(parent, terrain, position: Vector3, size: float, resolution: int):
 	self.position = position
 	self.size = size
 	self.resolution = resolution
-	var parent_position = parent.position if parent != null else Vector3.ZERO
+	var parent_position = parent.position if parent else Vector3.ZERO
 	self.translation = position - parent_position
 
 
@@ -214,14 +213,14 @@ func _children():  # Omits children to be deleted soon
 
 func _screen_space_vertex_error():
 	var viewport = get_viewport()
-	if viewport == null:  # Happens at startup
+	if not viewport:  # Happens at startup
 		return 0
 	var camera = viewport.get_camera()
 	var camera_position = camera.get_global_transform().origin
 	var geometric_error = self.size / (self.resolution - 1)
 	var viewport_width = viewport.get_visible_rect().size.x
 	var perspective_scaling_factor = viewport_width / (2.0 * tan(deg2rad(camera.fov) / 2.0))
-	var distance = clamp(camera_position.distance_to(self.position) - self.size, 0.001, 10000)
+	var distance = clamp(camera_position.distance_to(self.position) - self.size, 0.001, 2147483647)
 	return geometric_error * perspective_scaling_factor / distance
 
 
