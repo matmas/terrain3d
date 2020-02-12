@@ -26,8 +26,8 @@ func _init(parent, terrain, position: Vector3, size: float, resolution: int):
 	self.translation = position - parent_position
 
 
-func update(max_screen_space_vertex_error):
-	_create_children(max_screen_space_vertex_error)
+func update():
+	_create_children()
 	var nodes_to_refresh = {}
 	var nodes_refreshed = _split_or_merge_children(nodes_to_refresh)
 	for n in nodes_refreshed:
@@ -38,8 +38,8 @@ func update(max_screen_space_vertex_error):
 		node._refresh_mesh()
 
 
-func _create_children(max_screen_space_vertex_error):
-	should_be_split = (_screen_space_vertex_error() > max_screen_space_vertex_error)
+func _create_children():
+	should_be_split = (_screen_space_vertex_error() > terrain.max_screen_space_vertex_error)
 	if should_be_split:
 		if children == []:
 			for zi in range(2):
@@ -50,7 +50,7 @@ func _create_children(max_screen_space_vertex_error):
 					children.append(child)
 					call_deferred("add_child", child)
 		for child in children:
-			child._create_children(max_screen_space_vertex_error)
+			child._create_children()
 
 
 func _split_or_merge_children(nodes_to_refresh):
