@@ -10,6 +10,7 @@ void TerrainGenerator::_register_methods() {
     register_method("add_params", &TerrainGenerator::add_params);
     register_method("generate_arrays", &TerrainGenerator::generate_arrays);
     register_method("arrays_to_mapdata", &TerrainGenerator::arrays_to_mapdata);
+    register_method("get_average_height", &TerrainGenerator::get_average_height);
 }
 
 TerrainGenerator::TerrainGenerator() {
@@ -96,4 +97,16 @@ PoolRealArray TerrainGenerator::arrays_to_mapdata(Array arrays, int mesh_ratio) 
         }
     }
     return array;
+}
+
+float TerrainGenerator::get_average_height(Array arrays) {
+    PoolVector3Array vertices = arrays[Mesh::ARRAY_VERTEX];
+    float height_sum = 0.0;
+    {
+        auto r = vertices.read();
+        for (int i = 0; i < vertices.size(); i++) {
+            height_sum += r[i].y;
+        }
+    }
+    return height_sum / vertices.size();
 }

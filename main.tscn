@@ -20,11 +20,18 @@ __meta__ = {
 "_edit_lock_": true
 }
 
-[node name="NoiseLayer" type="Node" parent="Terrain"]
+[node name="Mountains" type="Node" parent="Terrain"]
 script = ExtResource( 3 )
 fractal_type = 1
-curve = 1.0
+curve = 1.86607
 amplitude = 1000.0
+
+[node name="Uneven ground" type="Node" parent="Terrain"]
+script = ExtResource( 3 )
+frequency = 0.002
+octaves = 6
+gain = 0.25
+amplitude = 100.0
 
 [node name="CanvasLayer" type="CanvasLayer" parent="."]
 

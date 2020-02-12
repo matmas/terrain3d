@@ -11,6 +11,7 @@ var terrain_generator
 var should_be_split = false
 var children = []
 var mesh_instance: MeshInstance
+var average_height: float = 0.0
 
 enum Child { NW, NE, SW, SE }
 enum Direction { N, S, W, E }
@@ -101,6 +102,7 @@ func _generate_mesh():
 	var arrays = terrain_generator.generate_arrays(self.resolution, self.size, Vector2(self.position.x, self.position.z),
 		_lod(Direction.N), _lod(Direction.S), _lod(Direction.W), _lod(Direction.E))
 	call_deferred("_add_mesh", arrays)
+	self.average_height = terrain_generator.get_average_height(arrays)
 	var map_data = terrain_generator.arrays_to_mapdata(arrays, terrain.mesh_to_physics_mesh_ratio)
 	call_deferred("_add_shape", map_data)
 
@@ -224,7 +226,8 @@ func _screen_space_vertex_error():
 	var geometric_error = self.size / (self.resolution - 1)
 	var viewport_width = viewport.get_visible_rect().size.x
 	var perspective_scaling_factor = viewport_width / (2.0 * tan(deg2rad(camera.fov) / 2.0))
-	var distance = clamp(camera_position.distance_to(self.position) - self.size, 0.001, 2147483647)
+	var real_position = Vector3(self.position.x, self.position.y + self.average_height, self.position.z)
+	var distance = clamp(camera_position.distance_to(real_position) - self.size, 0.001, 2147483647)
 	return geometric_error * perspective_scaling_factor / distance
 
 

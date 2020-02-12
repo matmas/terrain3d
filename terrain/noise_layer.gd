@@ -10,11 +10,11 @@ export(NoiseType) var noise_type = NoiseType.SimplexFractal setget _set_noise_ty
 export(FractalType) var fractal_type = FractalType.FBM setget _set_fractal_type
 export(Interpolation) var interpolation = Interpolation.Quintic setget _set_interpolation
 export(int) var _seed = 0 setget _set_seed
-export(float, 0.0, 10.0) var frequency = 0.0001 setget _set_frequency
+export(float, 0.0, 0.01) var frequency = 0.0001 setget _set_frequency
 export(int, 1, 6) var octaves = 3 setget _set_octaves
 export(float, 0.1, 4.0) var lacunarity = 4.0 setget _set_lacunarity
 export(float, 0.0, 1.0) var gain = 0.164 setget _set_gain
-export(float, EASE) var curve = -0.25 setget _set_curve
+export(float, EASE) var curve = 1.0 setget _set_curve
 export(float) var amplitude = 25.0 setget _set_amplitude
 
 
