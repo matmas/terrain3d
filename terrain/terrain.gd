@@ -13,9 +13,18 @@ enum Resolution {
 	_257 = 257,
 	_513 = 513,
 }
+enum Ratio {
+	_1_to_1 = 1,
+	_2_to_1 = 2,
+	_4_to_1 = 4,
+	_8_to_1 = 8,
+	_16_to_1 = 16,
+	_32_to_1 = 32,
+}
 export(float) var max_screen_space_vertex_error = 10 setget _set_max_screen_space_vertex_error
 export(float) var size = 10000.0 setget _set_size
 export(Resolution) var resolution = Resolution._129 setget _set_resolution
+export(Ratio) var mesh_to_physics_mesh_ratio = 1 setget _set_mesh_to_physics_mesh_ratio
 export(float) var amplitude = 25.0 setget _set_amplitude
 export(float, EASE) var curve = 1 setget _set_curve
 export(int) var noise_seed = 0 setget _set_noise_seed
@@ -112,8 +121,15 @@ func _set_size(value):
 
 
 func _set_resolution(value):
-	resolution = value
-	_set_refresh(true)
+	if (value - 1) / mesh_to_physics_mesh_ratio > 2:
+		resolution = value
+		_set_refresh(true)
+
+
+func _set_mesh_to_physics_mesh_ratio(value):
+	if (resolution - 1) / value > 2:
+		mesh_to_physics_mesh_ratio = value
+		_set_refresh(true)
 
 
 func _set_curve(value):

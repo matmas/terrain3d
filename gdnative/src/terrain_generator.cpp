@@ -2,6 +2,7 @@
 #include "FastNoise.h"
 #include "ArrayMesh.hpp"
 #include "utils.hpp"
+#include <math.h>
 
 using namespace godot;
 
@@ -70,16 +71,21 @@ Array TerrainGenerator::generate_arrays(int resolution, float chunk_size, Vector
     return arrays;
 }
 
-PoolRealArray TerrainGenerator::arrays_to_mapdata(Array arrays) {
+PoolRealArray TerrainGenerator::arrays_to_mapdata(Array arrays, int mesh_ratio) {
     PoolVector3Array vertices = arrays[Mesh::ARRAY_VERTEX];
 
     PoolRealArray array;
-    array.resize(vertices.size());
+    int resolution = sqrt(vertices.size());
+    int new_resolution = (resolution - 1) / mesh_ratio + 1;
+    array.resize(new_resolution * new_resolution);
     {
         auto r = vertices.read();
         auto w = array.write();
-        for (int i = 0; i < vertices.size(); i++) {
-            w[i] = r[i].y;
+        int i = 0;
+        for (int zi = 0; zi < resolution; zi += mesh_ratio) {
+            for (int xi = 0; xi < resolution; xi += mesh_ratio) {
+                w[i++] = r[xi + zi * resolution].y;
+            }
         }
     }
     return array;

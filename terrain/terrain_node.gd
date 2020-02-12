@@ -97,7 +97,7 @@ func _generate_mesh():
 	var arrays = terrain_generator.generate_arrays(self.resolution, self.size, Vector2(self.position.x, self.position.z),
 		_lod(Direction.N), _lod(Direction.S), _lod(Direction.W), _lod(Direction.E))
 	call_deferred("_add_mesh", arrays)
-	var map_data = terrain_generator.arrays_to_mapdata(arrays)
+	var map_data = terrain_generator.arrays_to_mapdata(arrays, terrain.mesh_to_physics_mesh_ratio)
 	call_deferred("_add_shape", map_data)
 
 
@@ -115,11 +115,11 @@ func _add_shape(map_data):
 	var body = StaticBody.new()
 	var collision_shape = CollisionShape.new()
 	var height_map_shape = HeightMapShape.new()
-	height_map_shape.map_width = self.resolution
-	height_map_shape.map_depth = self.resolution
+	height_map_shape.map_width = (self.resolution - 1) / terrain.mesh_to_physics_mesh_ratio + 1
+	height_map_shape.map_depth = height_map_shape.map_width
 	height_map_shape.map_data = map_data
 	collision_shape.shape = height_map_shape
-	collision_shape.scale = Vector3(self.size / (self.resolution - 1), 1.0, self.size / (self.resolution - 1))
+	collision_shape.scale = Vector3(self.size / (height_map_shape.map_width - 1), 1.0, self.size / (height_map_shape.map_depth - 1))
 	body.add_child(collision_shape)
 	self.mesh_instance.add_child(body)
 
