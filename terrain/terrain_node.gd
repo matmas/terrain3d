@@ -33,8 +33,9 @@ func _init(parent, terrain, terrain_generator, position: Vector3, size: float, r
 
 func update():
 	_create_children()
+	var nodes_refreshed = {}
 	var nodes_to_refresh = {}
-	var nodes_refreshed = _split_or_merge_children(nodes_to_refresh)
+	_split_or_merge_children([nodes_refreshed, nodes_to_refresh])
 	for n in nodes_refreshed:
 		if nodes_to_refresh.has(n):
 			nodes_to_refresh.erase(n)
@@ -58,21 +59,21 @@ func _create_children():
 			child._create_children()
 
 
-func _split_or_merge_children(nodes_to_refresh):
-	var nodes_refreshed = []
-
+func _split_or_merge_children(userdata):
+	var nodes_refreshed = userdata[0]
+	var nodes_to_refresh = userdata[1]
 	if should_be_split:
 		var threads := []
 		for child in children:
 			if USE_THREADS:
 				var thread := Thread.new()
-				thread.start(child, "_split_or_merge_children", nodes_to_refresh)
+				thread.start(child, "_split_or_merge_children", [nodes_refreshed, nodes_to_refresh])
 				threads.append(thread)
 				for thread in threads:
 					if thread.is_active():
-						nodes_refreshed += thread.wait_to_finish()
+						thread.wait_to_finish()
 			else:
-				nodes_refreshed += _split_or_merge_children(nodes_to_refresh)
+				_split_or_merge_children([nodes_refreshed, nodes_to_refresh])
 		if mesh_instance:
 			mesh_instance.queue_free()
 			mesh_instance = null
@@ -81,14 +82,13 @@ func _split_or_merge_children(nodes_to_refresh):
 	else:
 		if not mesh_instance:
 			_generate_mesh()
-			nodes_refreshed.append(self)
+			nodes_refreshed[self] = true
 			if children:
 				for child in children:
 					child.queue_free()
 				children.clear()
 				for n in _get_all_smaller_neighbors():
 					nodes_to_refresh[n] = true
-	return nodes_refreshed
 
 
 func _refresh_mesh():
