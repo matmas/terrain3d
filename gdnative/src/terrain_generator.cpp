@@ -10,7 +10,7 @@ void TerrainGenerator::_register_methods() {
     register_method("add_params", &TerrainGenerator::add_params);
     register_method("generate_arrays", &TerrainGenerator::generate_arrays);
     register_method("arrays_to_mapdata", &TerrainGenerator::arrays_to_mapdata);
-    register_method("get_average_height", &TerrainGenerator::get_average_height);
+    register_method("get_min_max_height", &TerrainGenerator::get_min_max_height);
 }
 
 TerrainGenerator::TerrainGenerator() {
@@ -99,14 +99,24 @@ PoolRealArray TerrainGenerator::arrays_to_mapdata(Array arrays, int mesh_ratio) 
     return array;
 }
 
-float TerrainGenerator::get_average_height(Array arrays) {
+Array TerrainGenerator::get_min_max_height(Array arrays) {
     PoolVector3Array vertices = arrays[Mesh::ARRAY_VERTEX];
-    float height_sum = 0.0;
+    float min_height = +std::numeric_limits<float>::infinity();
+    float max_height = -std::numeric_limits<float>::infinity();
     {
         auto r = vertices.read();
         for (int i = 0; i < vertices.size(); i++) {
-            height_sum += r[i].y;
+            if (r[i].y > max_height) {
+                max_height = r[i].y;
+            }
+            if (r[i].y < min_height) {
+                min_height = r[i].y;
+            }
         }
     }
-    return height_sum / vertices.size();
+    Array result;
+    result.resize(2);
+    result[0] = min_height;
+    result[1] = max_height;
+    return result;
 }

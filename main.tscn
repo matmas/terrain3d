@@ -19,6 +19,7 @@ script = ExtResource( 2 )
 __meta__ = {
 "_edit_lock_": true
 }
+max_screen_space_vertex_error = 5.0
 
 [node name="Mountains" type="Node" parent="Terrain"]
 script = ExtResource( 3 )
