@@ -7,6 +7,9 @@ enum FractalType { FBM, Billow, RigidMulti }  # Applicable for ValueFractal, Per
 enum Interpolation { Linear, Hermite, Quintic }  # Applicable for Value, Perlin, Cubic and CubicFractal NoiseType
 
 export(bool) var enabled = true setget _set_enabled
+export(bool) var ridge = false setget _set_ridge
+export(float) var amplitude = 25.0 setget _set_amplitude
+export(float, EASE) var curve = 1.0 setget _set_curve
 export(NoiseType) var noise_type = NoiseType.SimplexFractal setget _set_noise_type
 export(FractalType) var fractal_type = FractalType.FBM setget _set_fractal_type
 export(Interpolation) var interpolation = Interpolation.Quintic setget _set_interpolation
@@ -15,8 +18,6 @@ export(float, 0.0, 0.01) var frequency = 0.0001 setget _set_frequency
 export(int, 1, 6) var octaves = 3 setget _set_octaves
 export(float, 0.1, 4.0) var lacunarity = 4.0 setget _set_lacunarity
 export(float, 0.0, 1.0) var gain = 0.164 setget _set_gain
-export(float, EASE) var curve = 1.0 setget _set_curve
-export(float) var amplitude = 25.0 setget _set_amplitude
 
 
 func _enter_tree():
@@ -34,6 +35,21 @@ func _refresh_parent():
 
 func _set_enabled(value):
 	enabled = value
+	_refresh_parent()
+
+
+func _set_ridge(value):
+	ridge = value
+	_refresh_parent()
+
+
+func _set_amplitude(value):
+	amplitude = value
+	_refresh_parent()
+
+
+func _set_curve(value):
+	curve = value
 	_refresh_parent()
 
 
@@ -74,14 +90,4 @@ func _set_lacunarity(value):
 
 func _set_gain(value):
 	gain = value
-	_refresh_parent()
-
-
-func _set_curve(value):
-	curve = value
-	_refresh_parent()
-
-
-func _set_amplitude(value):
-	amplitude = value
 	_refresh_parent()

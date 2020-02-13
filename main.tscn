@@ -23,12 +23,13 @@ max_screen_space_vertex_error = 5.0
 
 [node name="Mountains" type="Node" parent="Terrain"]
 script = ExtResource( 3 )
-fractal_type = 1
+octaves = 6
 curve = 1.86607
 amplitude = 1000.0
 
 [node name="Uneven ground" type="Node" parent="Terrain"]
 script = ExtResource( 3 )
+enabled = false
 frequency = 0.002
 octaves = 6
 gain = 0.25
@@ -45,7 +46,7 @@ __meta__ = {
 }
 
 [node name="Player" parent="." instance=ExtResource( 1 )]
-transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1000, 0 )
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1010, 0 )
 
 [node name="DirectionalLight" type="DirectionalLight" parent="."]
 transform = Transform( 1, 0, 0, 0, -0.648466, 0.761244, 0, -0.761244, -0.648466, 0, 100, 0 )
