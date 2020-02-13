@@ -8,6 +8,7 @@ enum Interpolation { Linear, Hermite, Quintic }  # Applicable for Value, Perlin,
 
 export(bool) var enabled = true setget _set_enabled
 export(bool) var ridge = false setget _set_ridge
+export(bool) var proportional_to_height = false setget _set_proportional_to_height
 export(float) var amplitude = 25.0 setget _set_amplitude
 export(float, EASE) var curve = 1.0 setget _set_curve
 export(NoiseType) var noise_type = NoiseType.SimplexFractal setget _set_noise_type
@@ -40,6 +41,11 @@ func _set_enabled(value):
 
 func _set_ridge(value):
 	ridge = value
+	_refresh_parent()
+
+
+func _set_proportional_to_height(value):
+	proportional_to_height = value
 	_refresh_parent()
 
 

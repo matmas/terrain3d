@@ -14,6 +14,7 @@ struct NoiseLayer {
     float curve;
     float amplitude;
     bool ridge;
+    bool proportional_to_height;
 };
 
 class TerrainGenerator : public Reference {
@@ -30,7 +31,7 @@ public:
     ~TerrainGenerator();
 
     void _init();
-    void add_params(int noise_type, int fractal_type, int interpolation, int seed, float frequency, int octaves, float lacunarity, float gain, float curve, float amplitude, bool ridge);
+    void add_params(int noise_type, int fractal_type, int interpolation, int seed, float frequency, int octaves, float lacunarity, float gain, float curve, float amplitude, bool ridge, bool proportional_to_height);
     Array generate_arrays(int resolution, float chunk_size, Vector2 position, int lod_n, int lod_s, int lod_w, int lod_e);
     PoolRealArray arrays_to_mapdata(Array arrays, int mesh_ratio);
     Array get_min_max_height(Array arrays);
