@@ -6,6 +6,7 @@ enum NoiseType { Value, ValueFractal, Perlin, PerlinFractal, Simplex, SimplexFra
 enum FractalType { FBM, Billow, RigidMulti }  # Applicable for ValueFractal, PerlinFractal and SimplexFractal NoiseType
 enum Interpolation { Linear, Hermite, Quintic }  # Applicable for Value, Perlin, Cubic and CubicFractal NoiseType
 
+export(bool) var enabled = true setget _set_enabled
 export(NoiseType) var noise_type = NoiseType.SimplexFractal setget _set_noise_type
 export(FractalType) var fractal_type = FractalType.FBM setget _set_fractal_type
 export(Interpolation) var interpolation = Interpolation.Quintic setget _set_interpolation
@@ -29,6 +30,11 @@ func _exit_tree():
 func _refresh_parent():
 	if get_parent():
 		get_parent().refresh()
+
+
+func _set_enabled(value):
+	enabled = value
+	_refresh_parent()
 
 
 func _set_noise_type(value):

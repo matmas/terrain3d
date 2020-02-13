@@ -41,7 +41,7 @@ func _get_new_root():
 	var terrain_generator = TerrainGenerator.new()
 	for node in get_children():
 		var layer := node as NoiseLayer
-		if layer:
+		if layer and layer.enabled:
 			terrain_generator.add_params(layer.noise_type, layer.fractal_type, layer.interpolation, layer._seed, layer.frequency, layer.octaves, layer.lacunarity, layer.gain, layer.curve, layer.amplitude)
 	return TerrainNode.new(null, self, terrain_generator, Vector3.ZERO, self.size, self.resolution)
 
