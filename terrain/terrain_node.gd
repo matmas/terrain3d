@@ -73,7 +73,7 @@ func _split_or_merge_children(userdata):
 					if thread.is_active():
 						thread.wait_to_finish()
 			else:
-				_split_or_merge_children([nodes_refreshed, nodes_to_refresh])
+				child._split_or_merge_children([nodes_refreshed, nodes_to_refresh])
 		if mesh_instance:
 			mesh_instance.queue_free()
 			mesh_instance = null
