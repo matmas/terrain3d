@@ -45,8 +45,8 @@ func _get_new_root():
 			terrain_generator.add_params(
 				layer.noise_type, layer.fractal_type, layer.interpolation,
 				layer._seed, layer.frequency, layer.octaves, layer.lacunarity,
-				layer.gain, layer.curve, layer.amplitude, layer.ridge,
-				layer.proportional_to_height)
+				layer.gain, layer.curve, layer.amplitude, layer.offset,
+				layer.ridge, layer.proportional_to_height)
 	return TerrainNode.new(null, self, terrain_generator, Vector3.ZERO, self.size, self.resolution)
 
 

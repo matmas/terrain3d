@@ -10,6 +10,7 @@ export(bool) var enabled = true setget _set_enabled
 export(bool) var ridge = false setget _set_ridge
 export(bool) var proportional_to_height = false setget _set_proportional_to_height
 export(float) var amplitude = 25.0 setget _set_amplitude
+export(Vector2) var offset = Vector2(0, 0) setget _set_offset
 export(float, EASE) var curve = 1.0 setget _set_curve
 export(NoiseType) var noise_type = NoiseType.SimplexFractal setget _set_noise_type
 export(FractalType) var fractal_type = FractalType.FBM setget _set_fractal_type
@@ -51,6 +52,11 @@ func _set_proportional_to_height(value):
 
 func _set_amplitude(value):
 	amplitude = value
+	_refresh_parent()
+
+
+func _set_offset(value):
+	offset = value
 	_refresh_parent()
 
 

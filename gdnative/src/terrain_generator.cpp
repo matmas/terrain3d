@@ -22,7 +22,7 @@ TerrainGenerator::~TerrainGenerator() {
 void TerrainGenerator::_init() {
 }
 
-void TerrainGenerator::add_params(int noise_type, int fractal_type, int interpolation, int seed, float frequency, int octaves, float lacunarity, float gain, float curve, float amplitude, bool ridge, bool proportional_to_height) {
+void TerrainGenerator::add_params(int noise_type, int fractal_type, int interpolation, int seed, float frequency, int octaves, float lacunarity, float gain, float curve, float amplitude, Vector2 offset, bool ridge, bool proportional_to_height) {
     NoiseLayer layer;
     layer.noise.SetNoiseType(static_cast<FastNoise::NoiseType>(noise_type));
     layer.noise.SetFractalType(static_cast<FastNoise::FractalType>(fractal_type));
@@ -34,6 +34,7 @@ void TerrainGenerator::add_params(int noise_type, int fractal_type, int interpol
     layer.noise.SetFractalGain(gain);
     layer.curve = curve;
     layer.amplitude = amplitude;
+    layer.offset = offset;
     layer.ridge = ridge;
     layer.proportional_to_height = proportional_to_height;
     this->layers.push_back(layer);
@@ -43,7 +44,8 @@ float TerrainGenerator::_height(Vector2 point) {
     float height = 0.0;
     float weight = 1.0;
     for (auto layer : this->layers) {
-        float value = layer.noise.GetNoise(point.x, point.y);  // from -1.0 to 1.0
+        Vector2 position = layer.offset + point;
+        float value = layer.noise.GetNoise(position.x, position.y);  // from -1.0 to 1.0
         if (layer.ridge) {
             value = (1.0 - abs(value)) * 2.0 - 1.0;
         }
