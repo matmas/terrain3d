@@ -52,7 +52,8 @@ func _create_children():
 				for xi in range(2):
 					var child_offset = Vector3((xi * 2 - 1) * size / 4, 0.0, (zi * 2 - 1) * size / 4)
 					var child_size = size / 2
-					var child = load("res://terrain/terrain_node.gd").new(self, self.terrain, self.terrain_generator, self.position + child_offset, child_size, self.resolution)
+					var child = load("res://terrain/terrain_node.gd").new(
+						self, self.terrain, self.terrain_generator, self.position + child_offset, child_size, self.resolution)
 					children.append(child)
 					call_deferred("add_child", child)
 		for child in children:
@@ -230,7 +231,7 @@ func _screen_space_vertex_error():
 	var viewport_width = viewport.get_visible_rect().size.x
 	var perspective_scaling_factor = viewport_width / (2.0 * tan(deg2rad(camera.fov) / 2.0))
 	var center = Vector3(self.position.x, self.position.y + (self.max_height + self.min_height) / 2, self.position.z)
-	var distance = camera_position.distance_to(center)
+	var distance = clamp(camera_position.distance_to(center), 10.0, 2147483647)
 	return geometric_error * perspective_scaling_factor / distance
 
 
