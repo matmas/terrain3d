@@ -230,10 +230,18 @@ func _screen_space_vertex_error():
 	var geometric_error = self.size / (self.resolution - 1)
 	var viewport_width = viewport.get_visible_rect().size.x
 	var perspective_scaling_factor = viewport_width / (2.0 * tan(deg2rad(camera.fov) / 2.0))
-	var center = Vector3(self.position.x, self.position.y + (self.max_height + self.min_height) / 2, self.position.z)
-	var distance = clamp(camera_position.distance_to(center), 10.0, 2147483647)
+	var distance = clamp(self._distance_to(camera_position), 10.0, 2147483647)
 	return geometric_error * perspective_scaling_factor / distance
 
+
+func _distance_to(p: Vector3):
+	var center = Vector3(self.position.x, self.position.y + (self.max_height + self.min_height) / 2, self.position.z)
+	var half_size = Vector3(self.size / 2, (self.max_height - self.min_height) / 2, self.size / 2)
+	return _max((p - center).abs() - half_size, 0).length()
+
+
+func _max(v: Vector3, value: float) -> Vector3:
+	return Vector3(max(v.x, value), max(v.y, value), max(v.z, value))
 
 # We need to refresh smaller neighbors of the node being split as they are dependent (.)
 #
