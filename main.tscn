@@ -23,10 +23,9 @@ max_screen_space_vertex_error = 5.0
 
 [node name="Mountains" type="Node" parent="Terrain"]
 script = ExtResource( 3 )
-ridge = true
 amplitude = 500.0
 offset = Vector2( 0, 1000 )
-curve = 1.86607
+curve = 4.59479
 
 [node name="Uneven ground" type="Node" parent="Terrain"]
 script = ExtResource( 3 )
@@ -35,6 +34,14 @@ amplitude = 100.0
 frequency = 0.002
 octaves = 6
 gain = 0.25
+
+[node name="Hills" type="Node" parent="Terrain"]
+script = ExtResource( 3 )
+amplitude = 50.0
+curve = 3.86374
+frequency = 0.001
+octaves = 2
+lacunarity = 3.414
 
 [node name="CanvasLayer" type="CanvasLayer" parent="."]
 
