@@ -7,11 +7,11 @@
 subdivide_width = 254
 subdivide_depth = 254
 
-[sub_resource type="ViewportTexture" id=2]
+[sub_resource type="ViewportTexture" id=5]
 
 [sub_resource type="ShaderMaterial" id=3]
 shader = ExtResource( 2 )
-shader_param/heightmap = SubResource( 2 )
+shader_param/heightmap = SubResource( 5 )
 
 [sub_resource type="GDScript" id=4]
 script/source = "tool
@@ -36,7 +36,7 @@ script = SubResource( 4 )
 transform = Transform( 1, 0, 0, 0, 0.934173, 0.35682, 0, -0.35682, 0.934173, 0, 0.757145, 1.72128 )
 
 [node name="DirectionalLight" type="DirectionalLight" parent="."]
-transform = Transform( 0.482512, -0.669626, 0.564608, -0.0827853, 0.60686, 0.790485, -0.871968, -0.42816, 0.237382, 0, 1.43307, 0 )
+transform = Transform( -0.0668838, 0, 0.997761, 0, 1, 0, -0.997761, 0, -0.0668838, 0, 1.43307, -0.0398992 )
 
 [node name="Viewport" type="Viewport" parent="."]
 size = Vector2( 256, 256 )
