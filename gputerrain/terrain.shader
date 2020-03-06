@@ -16,5 +16,5 @@ void fragment() {
 	float h1 = height(UV);
 	float h2 = height(UV + delta);
 	float h3 = height(UV + delta.yx);
-	NORMAL = (INV_CAMERA_MATRIX * vec4(normalize(vec3(h2-h1, delta.x, h3-h1)), 0.0)).xyz;
+	NORMAL = (INV_CAMERA_MATRIX * vec4(normalize(vec3(h1 - h2, delta.x, h1 - h3)), 0.0)).xyz;
 }
