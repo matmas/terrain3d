@@ -70,9 +70,9 @@ func _split_or_merge_children(userdata):
 				var thread := Thread.new()
 				thread.start(child, "_split_or_merge_children", [nodes_refreshed, nodes_to_refresh])
 				threads.append(thread)
-				for thread in threads:
-					if thread.is_active():
-						thread.wait_to_finish()
+				for t in threads:
+					if t.is_active():
+						t.wait_to_finish()
 			else:
 				child._split_or_merge_children([nodes_refreshed, nodes_to_refresh])
 		if mesh_instance:
