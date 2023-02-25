@@ -44,7 +44,7 @@ _global_script_class_icons={
 
 [application]
 
-config/name="Survival"
+config/name="terrain3d"
 run/main_scene="res://terrain/main.tscn"
 config/icon="res://icon.webp"
 
