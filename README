@@ -1,5 +1,0 @@
-git submodule update --init --recursive
-cd gdnative/vendor/godot-cpp/
-scons platform=linux generate_bindings=yes
-cd ../..
-scons
