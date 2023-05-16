@@ -243,7 +243,9 @@ func _distance_to(p: Vector3):
 func _max(v: Vector3, value: float) -> Vector3:
 	return Vector3(max(v.x, value), max(v.y, value), max(v.z, value))
 
-# We need to refresh smaller neighbors of the node being split as they are dependent (.)
+# Example of node a being split into d, e, f, g
+# Some tiles are dependent on others (denoted as .) because of seams
+# We need to refresh smaller neighbors (b, c) of the node being split as they are dependent.
 #
 #	+---------------------+ +---------+
 #	|                     | |         |
@@ -257,21 +259,23 @@ func _max(v: Vector3, value: float) -> Vector3:
 #	|                     | +---------+
 #	|                     | +---------+      +---+ +---+
 #	|                     | |         |      |   | |   |
-#	|                     | |         |      |   | |   |
+#	|                     | |         |      | d | | e |
 #	|                     | |         |      |   | |   |
 #	|                     | |.        |      +---+ +---+
-#	|                     | |         | +--> +---+ +---+
+#	|                     | |    a    | +--> +---+ +---+
 #	|                     | |         |      |   | |   |
-#	|                     | |         |      |   | |   |
+#	|                     | |         |      | f | | g |
 #	|                     | |         |      |   | |   |
 #	+---------------------+ +---------+      +---+ +---+
 #	                        +---+ +---+      +---+ +---+
 #	                        | . | | . |      |   | |   |
-#	                        |   | |   |      |   | |   |
+#	                        | b | | c |      | b | | c |
 #	                        |   | |   |      |   | |   |
 #	                        +---+ +---+      +---+ +---+
 #
-# We also need to refresh smaller neighbors of the node being merged as they are also dependent (.)
+# Example of several smaller nodes (d, e, f, g) being merged into one (a)
+# Some tiles are dependent on others (denoted as .) because of seams
+# We also need to refresh smaller neighbors of the node being merged as they are also dependent
 #
 #	+---------------------+ +---------+
 #	|                     | |         |
@@ -285,16 +289,16 @@ func _max(v: Vector3, value: float) -> Vector3:
 #	|                     | +---------+
 #	|                     | +---+ +---+      +---------+
 #	|                     | | . | | . |      |         |
-#	|                     | |.  | |   |      |         |
+#	|                     | |.d | | e |      |         |
 #	|                     | |   | |   |      |         |
 #	|                     | +---+ +---+      |         |
-#	|                     | +---+ +---+ +--> |         |
+#	|                     | +---+ +---+ +--> |    a    |
 #	|                     | |   | |   |      |         |
-#	|                     | |.  | |   |      |         |
+#	|                     | |.f | | g |      |         |
 #	|                     | |   | |   |      |         |
 #	+---------------------+ +---+ +---+      +---------+
 #	                        +---+ +---+      +---+ +---+
 #	                        |   | |   |      | . | | . |
-#	                        |   | |   |      |   | |   |
+#	                        | b | | c |      | b | | c |
 #	                        |   | |   |      |   | |   |
 #	                        +---+ +---+      +---+ +---+
